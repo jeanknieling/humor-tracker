@@ -1,6 +1,7 @@
 import { NavigationContainer, RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { DetailPage } from './screens/Detail';
 import { HomePage } from './screens/Home';
 import { SetUserNamePage } from './screens/SetUserName';
@@ -16,10 +17,33 @@ const Stack = createNativeStackNavigator<TScreenDefinitions>();
 export const AppRouters = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="home">
+      <Stack.Navigator 
+      initialRouteName="home"
+      screenOptions={{
+        headerShown: false,
+      }}
+      screenLayout={({children}) => (<SafeAreaView>{children}</SafeAreaView>)}
+      >
         <Stack.Screen name="home" component={HomePage} />
-        <Stack.Screen name="detail" component={DetailPage} />
-        <Stack.Screen name="setUserName" component={SetUserNamePage} />
+
+        <Stack.Group
+        screenOptions={{
+          presentation: 'formSheet',
+          sheetCornerRadius: 24,
+        }}>
+          <Stack.Screen 
+          name="detail" 
+          component={DetailPage} 
+          options={{
+            sheetAllowedDetents: [0.8, 0.92],
+          }}
+          />
+          <Stack.Screen name="setUserName" component={SetUserNamePage} 
+          options={{
+            sheetAllowedDetents: [0.4, 0.6],
+          }}
+        />
+        </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>
   );
