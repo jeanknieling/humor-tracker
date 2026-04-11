@@ -26,7 +26,14 @@ export const AppRouters = () => {
           backgroundColor: theme.colors.background,
         },
       }}
-      screenLayout={({children}) => (<SafeAreaView>{children}</SafeAreaView>)}
+      screenLayout={({children}) => (
+        <SafeAreaView 
+          style={{flex: 1}}
+          edges={['top', 'left', 'right']}
+        >
+          {children}
+        </SafeAreaView>
+      )}
       >
         <Stack.Screen name="home" component={HomePage} />
 
