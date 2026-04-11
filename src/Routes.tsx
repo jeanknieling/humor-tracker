@@ -38,10 +38,27 @@ export const AppRouters = () => {
         <Stack.Screen name="home" component={HomePage} />
 
         <Stack.Group
-        screenOptions={{
-          presentation: 'formSheet',
-          sheetCornerRadius: 24,
-        }}>
+          screenOptions={{
+            presentation: 'formSheet',
+            sheetCornerRadius: 24,
+            contentStyle: {
+              backgroundColor: theme.colors.background,
+              height: '100%',
+            },
+          }}
+          screenLayout={({children}) => (
+            <SafeAreaView 
+              style={{
+                flex: 1,
+                padding: 16,
+                backgroundColor: theme.colors.paper,
+              }}
+              edges={['left', 'right']}
+            >
+              {children}
+            </SafeAreaView>
+          )}
+        >
           <Stack.Screen 
           name="detail" 
           component={DetailPage} 
@@ -51,7 +68,7 @@ export const AppRouters = () => {
           />
           <Stack.Screen name="setUserName" component={SetUserNamePage} 
           options={{
-            sheetAllowedDetents: [0.4, 0.6],
+            sheetAllowedDetents: [0.4],
           }}
         />
         </Stack.Group>
