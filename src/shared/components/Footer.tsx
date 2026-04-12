@@ -11,7 +11,7 @@ export const Footer = ({ children }: IFooterProps) => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.footerContainer, { paddingBottom: insets.bottom + 16}]}>{children}</View>
+    <View style={{...styles.footerContainer, paddingBottom: insets.bottom + 16}}>{children}</View>
   );
 }
 

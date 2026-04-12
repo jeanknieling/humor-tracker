@@ -8,7 +8,7 @@ import { SetUserNamePage } from './screens/SetUserName';
 import { theme } from './../themes/Theme';
 
 type TScreenDefinitions = {
-  home: undefined;
+  home: { newName: string } | undefined;
   setUserName: undefined;
   detail: {rate: number};
 };

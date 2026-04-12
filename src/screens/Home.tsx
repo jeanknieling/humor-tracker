@@ -1,19 +1,26 @@
-import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { theme } from "../../themes/Theme";
 import { BaseInput } from "../shared/components/BaseInput";
-import { TNavigationScreenProps } from "./../Routes";
+import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
 
 
 export const HomePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
+  const { params } = useRoute<TRouteProps<"home">>();
+  const [userName, setUserName] = useState<string | undefined>(params?.newName);
+
+  useEffect(() => {
+    if(params?.newName.trim()) setUserName(params?.newName);
+  }, [params?.newName]);
 
   return (
     <>
-      <Header userName="John Doe" />
+      <Header userName={userName} />
 
       <View style={{flex: 1}} />
 
@@ -29,7 +36,6 @@ export const HomePage = () => {
               style={styles.footerInput}
               placeholder="Escreva seu nome aqui..."
               placeholderTextColor={theme.colors.textPlaceholder}
-              pointerEvents="none"
               editable={false}
             />
           </BaseInput>

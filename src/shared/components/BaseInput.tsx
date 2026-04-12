@@ -6,9 +6,10 @@ type IBaseInputProps = {
   label: string;
   asButton?: boolean;
   onPress?: () => void;
+  onChangeText?: (text: string) => string;
 }
 
-export const BaseInput = ({ children, label, asButton, onPress }: IBaseInputProps) => {
+export const BaseInput = ({ children, label, asButton, onPress, onChangeText }: IBaseInputProps) => {
   return (
     <View style={styles.baseInputContainer}>
       <Text style={styles.label}>{label}</Text>
