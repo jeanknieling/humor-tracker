@@ -8,7 +8,7 @@ export const theme = {
     primaryText: '#FFFFFF',
     error: '#FF0000',
     highlight: '#E0D53B',
-    backgroundHighlight: '#rgba(224, 213, 59, 0.17)',
+    backgroundHighlight: 'rgba(224, 213, 59, 0.17)',
   },
   fonts: {
     sizes: {
@@ -19,7 +19,7 @@ export const theme = {
     family: {
       regular: 'regular',
       bold: 'extraBold',
-      italic: 'regularItalic',
+      italic: 'mediumItalic',
     },
   },
   shadows: {
