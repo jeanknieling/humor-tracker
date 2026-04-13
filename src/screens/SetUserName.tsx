@@ -1,17 +1,37 @@
-import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { theme } from "./../../themes/Theme";
+import { TNavigationScreenProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Button } from "./../shared/components/Button";
-import { TNavigationScreenProps } from "./../Routes";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const SetUserNamePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const insets = useSafeAreaInsets();
   const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    AsyncStorage.getItem("user-name").then((value) => {
+      setUserName(value ?? '');
+    });
+  }, []);
+
+  const handleSaveUserName = async () => {
+    try {
+      
+      await AsyncStorage.setItem("user-name", userName);
+    } catch (error) {
+      Alert.alert("Erro ao recuperar o nome do usuário");
+    }
+
+    navigation.popTo('home', { newName: userName });
+  }
+
+  
 
   return (
     <View style={{...styles.container, paddingBottom: insets.bottom}}>
@@ -32,7 +52,7 @@ export const SetUserNamePage = () => {
       
       <Button 
         title="Salvar" 
-        onPress={() => navigation.popTo('home', { newName: userName })}
+        onPress={handleSaveUserName}
       />
     </View>
   );

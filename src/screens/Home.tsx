@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { theme } from "../../themes/Theme";
@@ -17,6 +18,12 @@ export const HomePage = () => {
   useEffect(() => {
     if(params?.newName.trim()) setUserName(params?.newName);
   }, [params?.newName]);
+
+  useEffect(() => {
+    AsyncStorage.getItem("user-name").then((value) => {
+      setUserName(value ?? '');
+    });
+  }, []);
 
   return (
     <>
