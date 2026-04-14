@@ -24,7 +24,7 @@ export const HomePage = () => {
 
   useEffect(() => {
     AsyncStorage.getItem("user-name").then((value) => {
-      setUserName('' ?? '');
+      setUserName(value ?? '');
     });
   }, []);
 
@@ -60,10 +60,10 @@ export const HomePage = () => {
       <Footer>
         <View style={styles.footerContainer}>
           <Text style={styles.footerTitle}>
-            {userName ? 'Qual é o seu nome?' : 'Como está seu humor hoje?'}
+            {!userName ? 'Qual é o seu nome?' : 'Como está seu humor hoje?'}
           </Text>
           {
-            userName ? (
+            !userName ? (
               <BaseInput 
                 label="Nome" 
                 asButton
