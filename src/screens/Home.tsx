@@ -9,6 +9,7 @@ import { BaseInput } from "../shared/components/BaseInput";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
+import { StarRating } from "../shared/components/StarRating";
 
 
 export const HomePage = () => {
@@ -77,30 +78,15 @@ export const HomePage = () => {
                 />
               </BaseInput>
             ) : (
-              <View style={styles.footerStarsContainer}>
-                {
-                  Array.from({ length: 5 }).map((_, index) => (
-                    <TouchableOpacity 
-                      key={index} 
-                      onPress={
-                        () => {
-                          const rate = index + 1;
-                          setSelectedRate(rate);
-                          setTimeout(() => {
-                            navigation.navigate('detail', { rate });
-                          }, 100);
-                        }
-                      }
-                    >
-                      <Octicons
-                        name={index < selectedRate ? "star-fill" : "star"}
-                        color={index < selectedRate ? theme.colors.textPlaceholder : theme.colors.textPlaceholder}
-                        size={36}
-                      />
-                    </TouchableOpacity>
-                  ))
-                }
-              </View>
+              <StarRating
+                rate={selectedRate}
+                onChange={(rate) => {
+                  setSelectedRate(rate);
+                  setTimeout(() => {
+                    navigation.navigate("detail", { rate });
+                  }, 100);
+                }}
+              />
             )
           }
         </View>

@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { theme } from "../../../themes/Theme";
 
-type IFooterProps = {
+interface IFooterProps {
   children: React.ReactNode;
 }
 

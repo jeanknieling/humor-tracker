@@ -2,12 +2,12 @@ import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { theme } from "./../../themes/Theme";
 import { TNavigationScreenProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Button } from "./../shared/components/Button";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const SetUserNamePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
