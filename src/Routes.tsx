@@ -1,11 +1,11 @@
 import { NavigationContainer, RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { theme } from './../themes/Theme';
 import { DetailPage } from './screens/Detail';
 import { HomePage } from './screens/Home';
 import { SetUserNamePage } from './screens/SetUserName';
-import { theme } from './../themes/Theme';
 
 type TScreenDefinitions = {
   home: { newName: string } | undefined;
@@ -63,7 +63,7 @@ export const AppRouters = () => {
           name="detail" 
           component={DetailPage} 
           options={{
-            sheetAllowedDetents: [0.8, 0.92],
+            sheetAllowedDetents: [0.8],
           }}
           />
           <Stack.Screen name="setUserName" component={SetUserNamePage} 

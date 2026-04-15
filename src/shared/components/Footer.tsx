@@ -4,14 +4,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "../../../themes/Theme";
 
 interface IFooterProps {
+  isFocused: boolean;
   children: React.ReactNode;
 }
 
-export const Footer = ({ children }: IFooterProps) => {
+export const Footer = ({ children, isFocused }: IFooterProps) => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={{...styles.footerContainer, paddingBottom: insets.bottom + 16}}>{children}</View>
+    <View 
+      style={{
+        ...styles.footerContainer, paddingBottom: insets.bottom + 16,
+        ...{ opacity:  isFocused ? 1 : 0 },
+      }}>
+        {children}
+    </View>
   );
 }
 

@@ -1,15 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import { useIsFocused ,useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import Octicons from '@expo/vector-icons/Octicons';
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
-import { theme } from "../../themes/Theme";
-import { BaseInput } from "../shared/components/BaseInput";
+import { theme } from "./../../themes/Theme";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
+import { BaseInput } from "./../shared/components/BaseInput";
 import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
-import { StarRating } from "../shared/components/StarRating";
+import { StarRating } from "./../shared/components/StarRating";
 
 
 export const HomePage = () => {
@@ -18,7 +17,8 @@ export const HomePage = () => {
   const [userName, setUserName] = useState<string | undefined>(params?.newName);
   const [userHumorList, setUserHumorList] = useState<string[]>([]);
   const [selectedRate, setSelectedRate] = useState<number>(0);
-
+  const isFocused = useIsFocused();
+  
   useEffect(() => {
     if(params?.newName.trim()) setUserName(params?.newName);
   }, [params?.newName]);
@@ -58,7 +58,7 @@ export const HomePage = () => {
         )}
       </View>
 
-      <Footer>
+      <Footer isFocused={isFocused}>
         <View style={styles.footerContainer}>
           <Text style={styles.footerTitle}>
             {!userName ? 'Qual é o seu nome?' : 'Como está seu humor hoje?'}
@@ -82,9 +82,7 @@ export const HomePage = () => {
                 rate={selectedRate}
                 onChange={(rate) => {
                   setSelectedRate(rate);
-                  setTimeout(() => {
-                    navigation.navigate("detail", { rate });
-                  }, 100);
+                  navigation.navigate("detail", { rate });
                 }}
               />
             )
