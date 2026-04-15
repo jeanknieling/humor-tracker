@@ -22,86 +22,84 @@ export const DetailPage = () => {
   const [showDateTimePicker, setShowDateTimePicker] = useState<boolean>(false);
 
   return (
-    <>
-      <View style={styles.container}>
-        <Text style={styles.title}>
-          Como está seu humor hoje?
-        </Text>
-        
-        <StarRating rate={selectedRate} onChange={(rate) => setSelectedRate(rate)} />
+    <View style={{...styles.container, paddingBottom: insets.bottom}}>
+      <Text style={styles.title}>
+        Como está seu humor hoje?
+      </Text>
+      
+      <StarRating rate={selectedRate} onChange={(rate) => setSelectedRate(rate)} />
 
-        <BaseInput 
-          label="Data e hora" 
-          asButton
-          onPress={() => setShowDateTimePicker(true)}
-        >
-          <TextInput
-            style={styles.input}
-            placeholder="Escreva seu nome aqui..."
-            placeholderTextColor={theme.colors.textPlaceholder}
-            editable={false}
-            pointerEvents="none"
-            value={dateTime.toLocaleString('pt-BR')}
+      <BaseInput 
+        label="Data e hora" 
+        asButton
+        onPress={() => setShowDateTimePicker(true)}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="Selecione a data e hora aqui..."
+          placeholderTextColor={theme.colors.textPlaceholder}
+          editable={false}
+          pointerEvents="none"
+          value={dateTime.toLocaleString('pt-BR')}
 
-          />
-        </BaseInput>
-        <DateTimePickerModal
-        isVisible={showDateTimePicker}
-        mode="datetime"
-        date={dateTime}
-        onConfirm={(date) => {
-          setDateTime(date)
-          setShowDateTimePicker(false)
-        }}
-        onCancel={() => setShowDateTimePicker(false)}
-      />
+        />
+      </BaseInput>
+      <DateTimePickerModal
+      isVisible={showDateTimePicker}
+      mode="datetime"
+      date={dateTime}
+      onConfirm={(date) => {
+        setDateTime(date)
+        setShowDateTimePicker(false)
+      }}
+      onCancel={() => setShowDateTimePicker(false)}
+    />
 
-        <BaseInput 
-          label="Descreva mais sobre o seu humor" 
-        >
-          <TextInput
-            style={{...styles.input, ...styles.inputMultiline}}
-            placeholder="Escreva seu nome aqui..."
-            placeholderTextColor={theme.colors.textPlaceholder}
-            multiline
-            numberOfLines={16}
-            value={description}
-            onChangeText={setDescription}
-          />
-        </BaseInput>
+      <BaseInput 
+        label="Descreva mais sobre o seu humor" 
+      >
+        <TextInput
+          style={{...styles.input, ...styles.inputMultiline}}
+          placeholder="Escreva uma descrição aqui..."
+          placeholderTextColor={theme.colors.textPlaceholder}
+          multiline
+          numberOfLines={16}
+          value={description}
+          onChangeText={setDescription}
+        />
+      </BaseInput>
 
-        <View style={{flex: 1}}/>
+      <View style={{flex: 1}}/>
 
-        <View style={{...styles.actionsContainer, paddingBottom: insets.bottom + 16}}>
-          {
-            params?.id && (
-              <Button 
-                onPress={() => {}}
-                variant="outlined"
+      <View style={styles.actionsContainer}>
+        {
+          params?.id && (
+            <Button 
+              onPress={() => {}}
+              variant="outlined"
+              color={theme.colors.error}
+            >
+              <Ionicons 
+                name="trash-outline" 
+                size={18} 
                 color={theme.colors.error}
-              >
-                <Ionicons 
-                  name="trash-outline" 
-                  size={18} 
-                  color={theme.colors.error}
-                  />
-              </Button>
-            )
-          }
-          <Button
-            title="Cancelar" 
-            onPress={() => navigation.goBack()}
-            variant="outlined"
-            flex
-          />
-          <Button 
-            title="Salvar" 
-            onPress={() => {}}
-            flex
-          />
-        </View>
+                />
+            </Button>
+          )
+        }
+        <Button
+          title="Cancelar" 
+          onPress={() => navigation.goBack()}
+          variant="outlined"
+          flex
+        />
+        <Button 
+          title="Salvar" 
+          onPress={() => {}}
+          flex
+        />
       </View>
-    </>
+    </View>
   );
 }
 

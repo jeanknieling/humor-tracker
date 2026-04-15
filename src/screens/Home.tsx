@@ -9,13 +9,14 @@ import { BaseInput } from "./../shared/components/BaseInput";
 import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
 import { StarRating } from "./../shared/components/StarRating";
+import { HumorCard } from "./../shared/components/HumorCard";
 
 
 export const HomePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const { params } = useRoute<TRouteProps<"home">>();
   const [userName, setUserName] = useState<string | undefined>(params?.newName);
-  const [userHumorList, setUserHumorList] = useState<string[]>([]);
+  const [userHumorList, setUserHumorList] = useState<React.ReactNode[]>([]);
   const [selectedRate, setSelectedRate] = useState<number>(0);
   const isFocused = useIsFocused();
   
@@ -29,7 +30,7 @@ export const HomePage = () => {
     });
 
     AsyncStorage.getItem("humor-list").then((value) => {
-      setUserHumorList(value ? JSON.parse(value) : []);
+      setUserHumorList(value ? JSON.parse(value) : [<HumorCard key="1" dateTime="2026-04-15 10:00:00" rate={1} description="Teste 1" />, <HumorCard key="2" dateTime="2026-04-15 10:00:00" rate={3} description="Teste 2" />, <HumorCard key="3" dateTime="2026-04-15 10:00:00" rate={5} description="Teste 3" />]);
     });
   }, []);
 
@@ -45,9 +46,7 @@ export const HomePage = () => {
 
       <View style={styles.container}>
         {userHumorList.length  ? (
-          userHumorList.map((humor) => (
-            <Text key={humor}>{humor}</Text>
-          ))
+          userHumorList.map((humor) => humor)
         ) : (
           <Text style={styles.emptyListText}>
             Você ainda não {'\n'}
@@ -94,9 +93,8 @@ export const HomePage = () => {
   const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    gap: 8,
+    padding: 16,
   },
   emptyListText: {
     color: theme.colors.textPlaceholder,
