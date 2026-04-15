@@ -27,10 +27,8 @@ export const HomePage = () => {
     AsyncStorage.getItem("user-name").then((value) => {
       setUserName(value ?? '');
     });
-  }, []);
 
-  useEffect(() => {
-    AsyncStorage.getItem("user-humor").then((value) => {
+    AsyncStorage.getItem("humor-list").then((value) => {
       setUserHumorList(value ? JSON.parse(value) : []);
     });
   }, []);
@@ -82,7 +80,9 @@ export const HomePage = () => {
                 rate={selectedRate}
                 onChange={(rate) => {
                   setSelectedRate(rate);
-                  navigation.navigate("detail", { rate });
+                  setTimeout(() => {
+                    navigation.navigate("detail", { rate });
+                  }, 50);
                 }}
               />
             )
