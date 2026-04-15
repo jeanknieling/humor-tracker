@@ -1,8 +1,10 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 import { theme } from "./../../themes/Theme";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
@@ -15,9 +17,10 @@ export const DetailPage = () => {
   const insets = useSafeAreaInsets();
   const { params } = useRoute<TRouteProps<"detail">>();
   const [selectedRate, setSelectedRate] = useState<number>(params.rate);
-  const [dateTime, setDateTime] = useState<string>(new Date().toISOString());
+  const [dateTime, setDateTime] = useState<Date>(new Date());
   const [description, setDescription] = useState<string>('');
-  
+  const [showDateTimePicker, setShowDateTimePicker] = useState<boolean>(false);
+
   return (
     <>
       <View style={styles.container}>
@@ -29,15 +32,29 @@ export const DetailPage = () => {
 
         <BaseInput 
           label="Data e hora" 
+          asButton
+          onPress={() => setShowDateTimePicker(true)}
         >
           <TextInput
             style={styles.input}
             placeholder="Escreva seu nome aqui..."
             placeholderTextColor={theme.colors.textPlaceholder}
-            value={dateTime}
-            onChangeText={setDateTime}
+            editable={false}
+            pointerEvents="none"
+            value={dateTime.toLocaleString('pt-BR')}
+
           />
         </BaseInput>
+        <DateTimePickerModal
+        isVisible={showDateTimePicker}
+        mode="datetime"
+        date={dateTime}
+        onConfirm={(date) => {
+          setDateTime(date)
+          setShowDateTimePicker(false)
+        }}
+        onCancel={() => setShowDateTimePicker(false)}
+      />
 
         <BaseInput 
           label="Descreva mais sobre o seu humor" 

@@ -80,9 +80,7 @@ export const HomePage = () => {
                 rate={selectedRate}
                 onChange={(rate) => {
                   setSelectedRate(rate);
-                  setTimeout(() => {
-                    navigation.navigate("detail", { rate });
-                  }, 50);
+                  navigation.navigate("detail", { rate });
                 }}
               />
             )
