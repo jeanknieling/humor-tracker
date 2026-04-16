@@ -5,7 +5,7 @@ import { theme } from "./../../../themes/Theme";
 import { StarRating } from "./StarRating";
 
 interface IHumorCardProps {
-  dateTime: string;
+  dateTime: number;
   rate: number;
   description: string;
 };
@@ -13,7 +13,7 @@ interface IHumorCardProps {
 export function HumorCard({dateTime, rate, description}: IHumorCardProps) {
   return (
     <View style={styles.container} >
-      <Text style={styles.dateTimeText}>{dateTime}</Text>
+      <Text style={styles.dateTimeText}>{new Date(dateTime).toLocaleString('pt-BR').replace(',', ' às')}</Text>
         <StarRating 
         rate={rate} 
         align="flex-start" 

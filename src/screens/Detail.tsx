@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from 'uuid';
@@ -22,18 +23,28 @@ export const DetailPage = () => {
   const [description, setDescription] = useState<string>('');
   const [showDateTimePicker, setShowDateTimePicker] = useState<boolean>(false);
 
-  const handleSave = () => {
-    navigation.popTo(
-      'home', 
-      { 
-        newHumor: { 
-          id: uuidv4(), 
-          dateTime: dateTime.getTime(), 
-          rate: selectedRate, 
-          description: description 
-        } 
-      }
-    );
+  const handleSave = async () => {
+    const newHumor = {
+      id: uuidv4(),
+      dateTime: dateTime.getTime(),
+      rate: selectedRate,
+      description: description
+    }
+
+    try {
+      const oldUserHumorList = 
+        await AsyncStorage
+        .getItem("humor-list")
+        .then((value) => value ? JSON.parse(value) : []);
+
+      oldUserHumorList.unshift(newHumor);
+
+      await AsyncStorage.setItem("humor-list", JSON.stringify(oldUserHumorList));
+
+      navigation.popTo('home', { newHumor });
+    } catch (error) {
+      Alert.alert("Erro ao salvar o humor no histórico");
+    }
   }
 
   return (

@@ -25,13 +25,11 @@ export const SetUserNamePage = () => {
       
       await AsyncStorage.setItem("user-name", userName);
     } catch (error) {
-      Alert.alert("Erro ao recuperar o nome do usuário");
+      Alert.alert("Erro ao salvar o nome do usuário no histórico");
     }
 
     navigation.popTo('home', { newName: userName });
   }
-
-  
 
   return (
     <View style={{...styles.container, paddingBottom: insets.bottom}}>

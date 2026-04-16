@@ -48,9 +48,9 @@ export const HomePage = () => {
       setUserName(value ?? '');
     });
 
-    /* AsyncStorage.getItem("humor-list").then((value) => {
+    AsyncStorage.getItem("humor-list").then((value) => {
       setUserHumorList(value ? JSON.parse(value) : []);
-    }); */
+    });
   }, []);
 
   useFocusEffect(
@@ -69,7 +69,7 @@ export const HomePage = () => {
         keyExtractor={(item) => item.id}
         renderItem={({item}) => (
           <HumorCard 
-            dateTime={new Date(item.dateTime).toLocaleString('pt-BR').replace(',', ' às')} 
+            dateTime={item.dateTime} 
             rate={item.rate} 
             description={item.description} 
           />

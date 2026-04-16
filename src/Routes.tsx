@@ -10,7 +10,7 @@ import { SetUserNamePage } from './screens/SetUserName';
 type TScreenDefinitions = {
   home: { newName?: string, newHumor?: IUserHumor } | undefined;
   setUserName: undefined;
-  detail: {rate: number, id?: string};
+  detail: { rate: number, id?: string };
 };
 
 const Stack = createNativeStackNavigator<TScreenDefinitions>();
