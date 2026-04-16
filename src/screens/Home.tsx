@@ -1,22 +1,37 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useIsFocused ,useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { theme } from "./../../themes/Theme";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
-import { StarRating } from "./../shared/components/StarRating";
 import { HumorCard } from "./../shared/components/HumorCard";
+import { StarRating } from "./../shared/components/StarRating";
 
+interface IUserHumor {
+  id: string;
+  dateTime: string;
+  rate: number;
+  description: string;
+}
 
 export const HomePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const { params } = useRoute<TRouteProps<"home">>();
   const [userName, setUserName] = useState<string | undefined>(params?.newName);
-  const [userHumorList, setUserHumorList] = useState<React.ReactNode[]>([]);
+  const [userHumorList, setUserHumorList] = useState<IUserHumor[]>([
+    {id: "1", dateTime: "2026-04-15 10:00:00", rate: 1, description: "Teste 1"},
+    {id: "2", dateTime: "2026-04-15 10:00:00", rate: 3, description: "Teste 2"},
+    {id: "3", dateTime: "2026-04-15 10:00:00", rate: 5, description: "Teste 3"},
+    {id: "4", dateTime: "2026-04-15 10:00:00", rate: 2, description: "Teste 4"},
+    {id: "5", dateTime: "2026-04-15 10:00:00", rate: 4, description: "Teste 5"},
+    {id: "6", dateTime: "2026-04-15 10:00:00", rate: 1, description: "Teste 6"},
+    {id: "7", dateTime: "2026-04-15 10:00:00", rate: 3, description: "Teste 7"},
+    {id: "8", dateTime: "2026-04-15 10:00:00", rate: 5, description: "Teste 8"},
+  ]);
   const [selectedRate, setSelectedRate] = useState<number>(0);
   const isFocused = useIsFocused();
   
@@ -29,9 +44,9 @@ export const HomePage = () => {
       setUserName(value ?? '');
     });
 
-    AsyncStorage.getItem("humor-list").then((value) => {
-      setUserHumorList(value ? JSON.parse(value) : [<HumorCard key="1" dateTime="2026-04-15 10:00:00" rate={1} description="Teste 1" />, <HumorCard key="2" dateTime="2026-04-15 10:00:00" rate={3} description="Teste 2" />, <HumorCard key="3" dateTime="2026-04-15 10:00:00" rate={5} description="Teste 3" />]);
-    });
+    /* AsyncStorage.getItem("humor-list").then((value) => {
+      setUserHumorList(value ? JSON.parse(value) : []);
+    }); */
   }, []);
 
   useFocusEffect(
@@ -44,17 +59,27 @@ export const HomePage = () => {
     <>
       <Header userName={userName} />
 
-      <View style={styles.container}>
-        {userHumorList.length  ? (
-          userHumorList.map((humor) => humor)
-        ) : (
-          <Text style={styles.emptyListText}>
-            Você ainda não {'\n'}
-            registrou nenhum humor!
-          </Text>
+      <FlatList 
+        contentContainerStyle={styles.listContainer}
+        data={userHumorList} 
+        keyExtractor={(item) => item.id}
+        renderItem={({item}) => (
+          <HumorCard 
+            dateTime={item.dateTime} 
+            rate={item.rate} 
+            description={item.description} 
+          />
+        )} 
+        ListEmptyComponent={() => (
+          <View style={styles.emptyListContainer}>
+            <Text style={styles.emptyListText}>
+              Você ainda não {'\n'}
+              registrou nenhum humor!
+            </Text>
+          </View>
         )}
-      </View>
-
+      />
+        
       <Footer isFocused={isFocused}>
         <View style={styles.footerContainer}>
           <Text style={styles.footerTitle}>
@@ -91,10 +116,15 @@ export const HomePage = () => {
 }
 
   const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 8,
+  listContainer: {
     padding: 16,
+    gap: 8,
+    flexGrow: 1,
+  },
+  emptyListContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyListText: {
     color: theme.colors.textPlaceholder,
