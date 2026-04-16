@@ -31,31 +31,17 @@ export const HomePage = () => {
   }, [params?.newName]);
 
   useEffect(() => {
-    const newHumor = params?.newHumor;
-  
-    if (newHumor) {
-      setUserHumorList((oldUserHumorList) => {
-        const exists = oldUserHumorList.some(item => item.id === newHumor.id);
-        return exists ? oldUserHumorList : [...oldUserHumorList, newHumor];
-      });
-
-      navigation.setParams({ newHumor: undefined });
-    }
-  }, [params?.newHumor]);
-
-  useEffect(() => {
     AsyncStorage.getItem("user-name").then((value) => {
       setUserName(value ?? '');
-    });
-
-    AsyncStorage.getItem("humor-list").then((value) => {
-      setUserHumorList(value ? JSON.parse(value) : []);
     });
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       setSelectedRate(0);
+      AsyncStorage.getItem("humor-list").then((value) => {
+        setUserHumorList(value ? JSON.parse(value) : []);
+      });
     }, [])
   );
 
@@ -72,6 +58,7 @@ export const HomePage = () => {
             dateTime={item.dateTime} 
             rate={item.rate} 
             description={item.description} 
+            onPress={() => navigation.navigate('detail', { id: item.id })}
           />
         )} 
         ListEmptyComponent={() => (

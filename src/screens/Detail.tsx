@@ -1,51 +1,111 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from 'uuid';
-
 
 import { theme } from "./../../themes/Theme";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Button } from "./../shared/components/Button";
 import { StarRating } from "./../shared/components/StarRating";
+import { IUserHumor } from './Home';
 
 export const DetailPage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const insets = useSafeAreaInsets();
   const { params } = useRoute<TRouteProps<"detail">>();
-  const [selectedRate, setSelectedRate] = useState<number>(params.rate);
+  const [selectedRate, setSelectedRate] = useState<number>(params.rate || 1);
   const [dateTime, setDateTime] = useState<Date>(new Date());
   const [description, setDescription] = useState<string>('');
   const [showDateTimePicker, setShowDateTimePicker] = useState<boolean>(false);
 
   const handleSave = async () => {
-    const newHumor = {
-      id: uuidv4(),
+    const newHumorOrUpdate: IUserHumor = {
+      id: params.id || uuidv4(),
       dateTime: dateTime.getTime(),
       rate: selectedRate,
-      description: description
-    }
-
+      description,
+    };
+  
     try {
-      const oldUserHumorList = 
-        await AsyncStorage
+      const oldUserHumorList: IUserHumor[] = await AsyncStorage
         .getItem("humor-list")
-        .then((value) => value ? JSON.parse(value) : []);
-
-      oldUserHumorList.unshift(newHumor);
-
-      await AsyncStorage.setItem("humor-list", JSON.stringify(oldUserHumorList));
-
-      navigation.popTo('home', { newHumor });
+        .then((value) => (value ? JSON.parse(value) : []));
+  
+      const humorIndex = oldUserHumorList.findIndex(
+        (item) => item.id === newHumorOrUpdate.id
+      );
+  
+      let updatedList: IUserHumor[];
+  
+      if (humorIndex === -1) {
+        updatedList = [newHumorOrUpdate, ...oldUserHumorList];
+      } else {
+        const listWithoutUpdatedItem = oldUserHumorList.filter((item) => item.id !== newHumorOrUpdate.id);
+        updatedList = [newHumorOrUpdate, ...listWithoutUpdatedItem];
+      }
+  
+      await AsyncStorage.setItem("humor-list", JSON.stringify(updatedList));
+  
+      navigation.popTo("home");
     } catch (error) {
       Alert.alert("Erro ao salvar o humor no histórico");
     }
-  }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const userHumorList: IUserHumor[] = await AsyncStorage
+        .getItem("humor-list")
+        .then((value) => (value ? JSON.parse(value) : []));
+  
+      const updatedList = userHumorList.filter((item) => item.id !== params.id);
+  
+      await AsyncStorage.setItem("humor-list", JSON.stringify(updatedList));
+  
+      navigation.popTo("home");
+    } catch (error) {
+      Alert.alert("Erro ao deletar o humor no histórico");
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    Alert.alert(
+      "Excluir registro",
+      "Tem certeza que deseja excluir este registro?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: handleDelete,
+        },
+      ]
+    );
+  };
+
+  useEffect(() => {
+    if (params.id) {
+      AsyncStorage
+        .getItem("humor-list")
+        .then((value) => value ? JSON.parse(value) : [])
+        .then((humorList) => {
+          const humor = humorList.find((item: IUserHumor) => item.id === params.id);
+          if (!humor) return;
+
+          setDateTime(new Date(humor.dateTime));
+          setSelectedRate(humor.rate);
+          setDescription(humor.description);
+        });
+    }
+  }, [params.id]);
 
   return (
     <View style={{...styles.container, paddingBottom: insets.bottom}}>
@@ -101,7 +161,7 @@ export const DetailPage = () => {
         {
           params?.id && (
             <Button 
-              onPress={() => {}}
+              onPress={handleConfirmDelete}
               variant="outlined"
               color={theme.colors.error}
             >
@@ -121,7 +181,7 @@ export const DetailPage = () => {
         />
         <Button 
           title="Salvar" 
-          onPress={() => handleSave()}
+          onPress={handleSave}
           flex
         />
       </View>

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 import { theme } from "./../../../themes/Theme";
 import { StarRating } from "./StarRating";
@@ -8,11 +8,12 @@ interface IHumorCardProps {
   dateTime: number;
   rate: number;
   description: string;
+  onPress: () => void;
 };
 
-export function HumorCard({dateTime, rate, description}: IHumorCardProps) {
+export function HumorCard({dateTime, rate, description, onPress}: IHumorCardProps) {
   return (
-    <View style={styles.container} >
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       <Text style={styles.dateTimeText}>{new Date(dateTime).toLocaleString('pt-BR').replace(',', ' às')}</Text>
         <StarRating 
         rate={rate} 
@@ -21,7 +22,7 @@ export function HumorCard({dateTime, rate, description}: IHumorCardProps) {
         size={24}
         />
         <Text>{description}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

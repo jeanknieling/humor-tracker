@@ -4,13 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { theme } from './../themes/Theme';
 import { DetailPage } from './screens/Detail';
-import { HomePage, IUserHumor } from './screens/Home';
+import { HomePage } from './screens/Home';
 import { SetUserNamePage } from './screens/SetUserName';
 
 type TScreenDefinitions = {
-  home: { newName?: string, newHumor?: IUserHumor } | undefined;
+  home: { newName?: string } | undefined;
   setUserName: undefined;
-  detail: { rate: number, id?: string };
+  detail: { rate?: number, id?: string };
 };
 
 const Stack = createNativeStackNavigator<TScreenDefinitions>();
