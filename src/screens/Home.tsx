@@ -11,9 +11,9 @@ import { Header } from "./../shared/components/Header";
 import { HumorCard } from "./../shared/components/HumorCard";
 import { StarRating } from "./../shared/components/StarRating";
 
-interface IUserHumor {
+export interface IUserHumor {
   id: string;
-  dateTime: string;
+  dateTime: number;
   rate: number;
   description: string;
 }
@@ -22,22 +22,26 @@ export const HomePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const { params } = useRoute<TRouteProps<"home">>();
   const [userName, setUserName] = useState<string | undefined>(params?.newName);
-  const [userHumorList, setUserHumorList] = useState<IUserHumor[]>([
-    {id: "1", dateTime: "2026-04-15 10:00:00", rate: 1, description: "Teste 1"},
-    {id: "2", dateTime: "2026-04-15 10:00:00", rate: 3, description: "Teste 2"},
-    {id: "3", dateTime: "2026-04-15 10:00:00", rate: 5, description: "Teste 3"},
-    {id: "4", dateTime: "2026-04-15 10:00:00", rate: 2, description: "Teste 4"},
-    {id: "5", dateTime: "2026-04-15 10:00:00", rate: 4, description: "Teste 5"},
-    {id: "6", dateTime: "2026-04-15 10:00:00", rate: 1, description: "Teste 6"},
-    {id: "7", dateTime: "2026-04-15 10:00:00", rate: 3, description: "Teste 7"},
-    {id: "8", dateTime: "2026-04-15 10:00:00", rate: 5, description: "Teste 8"},
-  ]);
+  const [userHumorList, setUserHumorList] = useState<IUserHumor[]>([]);
   const [selectedRate, setSelectedRate] = useState<number>(0);
   const isFocused = useIsFocused();
   
   useEffect(() => {
-    if(params?.newName.trim()) setUserName(params?.newName);
+    if(params?.newName?.trim()) setUserName(params?.newName ?? '');
   }, [params?.newName]);
+
+  useEffect(() => {
+    const newHumor = params?.newHumor;
+  
+    if (newHumor) {
+      setUserHumorList((oldUserHumorList) => {
+        const exists = oldUserHumorList.some(item => item.id === newHumor.id);
+        return exists ? oldUserHumorList : [...oldUserHumorList, newHumor];
+      });
+
+      navigation.setParams({ newHumor: undefined });
+    }
+  }, [params?.newHumor]);
 
   useEffect(() => {
     AsyncStorage.getItem("user-name").then((value) => {
@@ -65,7 +69,7 @@ export const HomePage = () => {
         keyExtractor={(item) => item.id}
         renderItem={({item}) => (
           <HumorCard 
-            dateTime={item.dateTime} 
+            dateTime={new Date(item.dateTime).toLocaleString('pt-BR').replace(',', ' às')} 
             rate={item.rate} 
             description={item.description} 
           />

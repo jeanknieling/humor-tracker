@@ -4,11 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { theme } from './../themes/Theme';
 import { DetailPage } from './screens/Detail';
-import { HomePage } from './screens/Home';
+import { HomePage, IUserHumor } from './screens/Home';
 import { SetUserNamePage } from './screens/SetUserName';
 
 type TScreenDefinitions = {
-  home: { newName: string } | undefined;
+  home: { newName?: string, newHumor?: IUserHumor } | undefined;
   setUserName: undefined;
   detail: {rate: number, id?: string};
 };

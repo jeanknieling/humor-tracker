@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { Inter_400Regular, Inter_500Medium_Italic, Inter_800ExtraBold, useFonts } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
+import 'react-native-get-random-values';
 
 import { AppRouters } from './Routes';
+
+SplashScreen.preventAutoHideAsync();
 
 export const App = () => {
   const [loaded, error] = useFonts({

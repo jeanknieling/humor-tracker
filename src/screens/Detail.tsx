@@ -4,6 +4,7 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { v4 as uuidv4 } from 'uuid';
 
 
 import { theme } from "./../../themes/Theme";
@@ -20,6 +21,20 @@ export const DetailPage = () => {
   const [dateTime, setDateTime] = useState<Date>(new Date());
   const [description, setDescription] = useState<string>('');
   const [showDateTimePicker, setShowDateTimePicker] = useState<boolean>(false);
+
+  const handleSave = () => {
+    navigation.popTo(
+      'home', 
+      { 
+        newHumor: { 
+          id: uuidv4(), 
+          dateTime: dateTime.getTime(), 
+          rate: selectedRate, 
+          description: description 
+        } 
+      }
+    );
+  }
 
   return (
     <View style={{...styles.container, paddingBottom: insets.bottom}}>
@@ -95,7 +110,7 @@ export const DetailPage = () => {
         />
         <Button 
           title="Salvar" 
-          onPress={() => {}}
+          onPress={() => handleSave()}
           flex
         />
       </View>
