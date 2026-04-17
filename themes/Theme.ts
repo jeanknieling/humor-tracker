@@ -9,6 +9,7 @@ export const theme = {
     error: '#FF0000',
     highlight: '#E0D53B',
     backgroundHighlight: 'rgba(224, 213, 59, 0.17)',
+    backgroundOverlay: 'rgba(0,0,0,0.4)',
   },
   fonts: {
     sizes: {

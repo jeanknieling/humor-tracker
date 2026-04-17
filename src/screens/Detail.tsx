@@ -126,8 +126,15 @@ export const DetailPage = () => {
           placeholderTextColor={theme.colors.textPlaceholder}
           editable={false}
           pointerEvents="none"
-          value={dateTime.toLocaleString('pt-BR')}
-
+          value={
+            dateTime.toLocaleString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }).replace(',', ' às')
+          }
         />
       </BaseInput>
       <DateTimePickerModal

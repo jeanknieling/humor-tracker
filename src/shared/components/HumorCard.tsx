@@ -14,14 +14,33 @@ interface IHumorCardProps {
 export function HumorCard({dateTime, rate, description, onPress}: IHumorCardProps) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.dateTimeText}>{new Date(dateTime).toLocaleString('pt-BR').replace(',', ' às')}</Text>
-        <StarRating 
+      <Text 
+        style={styles.dateTimeText}>{
+          new Date(dateTime).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }).replace(',', ' às')
+        }
+      </Text>
+      <StarRating 
         rate={rate} 
         align="flex-start" 
         touchableOpacityDisabled 
         size={24}
-        />
-        <Text>{description}</Text>
+      />
+      {
+        description && (
+          <Text 
+            numberOfLines={2} 
+            style={styles.descriptionText}
+          >
+            {description}
+          </Text>
+        )
+      }
     </TouchableOpacity>
   );
 }
