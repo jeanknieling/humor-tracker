@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
 import { Inter_400Regular, Inter_500Medium_Italic, Inter_800ExtraBold, useFonts } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 import 'react-native-get-random-values';
 
 import { AppRouters } from './Routes';
+import { ThemeProvider } from './shared/theme/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,6 +26,8 @@ export const App = () => {
   }
 
   return (
-    <AppRouters />
+    <ThemeProvider>
+      <AppRouters />
+    </ThemeProvider>
   );
 }

@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { theme } from "./../../../themes/Theme";
+import { AppTheme } from "./../../../themes/Theme";
+import { useTheme } from "./../theme/ThemeContext";
 
 type IButtonProps = {
   title?: string;
@@ -12,6 +14,9 @@ type IButtonProps = {
 }
 
 export const Button = ({ title, children, flex, color, variant = 'contained', onPress }: IButtonProps) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <Pressable
     style={({ pressed }) => ({
@@ -38,32 +43,33 @@ export const Button = ({ title, children, flex, color, variant = 'contained', on
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonContained: {
-    backgroundColor: theme.colors.primary,
-  },
-  buttonOutlined: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    color: theme.colors.primary,
-  },
-  buttonText: {
-    color: theme.colors.primaryText,
-    fontFamily: theme.fonts.family.bold,
-    fontSize: theme.fonts.sizes.body,
-  },
-  buttonOutlinedText: {
-    color: theme.colors.primary,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    button: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 8,
+      padding: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonPressed: {
+      opacity: 0.8,
+    },
+    buttonContained: {
+      backgroundColor: theme.colors.primary,
+    },
+    buttonOutlined: {
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      color: theme.colors.primary,
+    },
+    buttonText: {
+      color: theme.colors.primaryText,
+      fontFamily: theme.fonts.family.bold,
+      fontSize: theme.fonts.sizes.body,
+    },
+    buttonOutlinedText: {
+      color: theme.colors.primary,
+    },
+  });

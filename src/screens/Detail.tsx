@@ -1,22 +1,25 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from 'uuid';
 
-import { theme } from "./../../themes/Theme";
+import { AppTheme } from "./../../themes/Theme";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Button } from "./../shared/components/Button";
 import { StarRating } from "./../shared/components/StarRating";
+import { useTheme } from "./../shared/theme/ThemeContext";
 import { IUserHumor } from './Home';
 
 export const DetailPage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const insets = useSafeAreaInsets();
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { params } = useRoute<TRouteProps<"detail">>();
   const [selectedRate, setSelectedRate] = useState<number>(params.rate || 1);
   const [dateTime, setDateTime] = useState<Date>(new Date());
@@ -141,6 +144,7 @@ export const DetailPage = () => {
       isVisible={showDateTimePicker}
       mode="datetime"
       date={dateTime}
+      isDarkModeEnabled={isDark}
       onConfirm={(date) => {
         setDateTime(date)
         setShowDateTimePicker(false)
@@ -196,31 +200,32 @@ export const DetailPage = () => {
   );
 }
 
-  const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 16,
-  },
-  title: {
-    textAlign: 'center',
-    color: theme.colors.text,
-    fontFamily: theme.fonts.family.regular,
-    fontSize: theme.fonts.sizes.body,
-  },
-  input: {
-    color: theme.colors.text,
-    fontFamily: theme.fonts.family.regular,
-    fontSize: theme.fonts.sizes.body,
-    padding: 12,
-  },
-  inputMultiline: {
-    height: theme.fonts.sizes.body * 16,
-    textAlignVertical: 'top',
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      gap: 16,
+    },
+    title: {
+      textAlign: 'center',
+      color: theme.colors.text,
+      fontFamily: theme.fonts.family.regular,
+      fontSize: theme.fonts.sizes.body,
+    },
+    input: {
+      color: theme.colors.text,
+      fontFamily: theme.fonts.family.regular,
+      fontSize: theme.fonts.sizes.body,
+      padding: 12,
+    },
+    inputMultiline: {
+      height: theme.fonts.sizes.body * 16,
+      textAlignVertical: 'top',
+    },
+    actionsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+    },
+  });

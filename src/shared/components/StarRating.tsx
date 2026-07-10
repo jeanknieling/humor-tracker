@@ -1,7 +1,9 @@
 import Octicons from "@expo/vector-icons/Octicons";
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
-import { theme } from "../../../themes/Theme";
+
+import { AppTheme } from "../../../themes/Theme";
+import { useTheme } from "../theme/ThemeContext";
 
 interface IStarRatingProps {
   rate: number;
@@ -20,6 +22,9 @@ export function StarRating({
   max = 5,
   size = 36,
 }: IStarRatingProps) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <View style={{
       ...styles.container,
@@ -62,26 +67,26 @@ export function StarRating({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  star: {
-    padding: 4,
-    color: theme.colors.highlight,
-  },
-  starContainerHighlight: {
-    backgroundColor: theme.colors.backgroundHighlight,
-
-  },
-  starContainerHighlightStart: {
-    borderTopLeftRadius: 50,
-    borderBottomLeftRadius: 50,
-  },
-  starContainerHighlightEnd: {
-    borderTopRightRadius: 50,
-    borderBottomRightRadius: 50,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    star: {
+      padding: 4,
+      color: theme.colors.highlight,
+    },
+    starContainerHighlight: {
+      backgroundColor: theme.colors.backgroundHighlight,
+    },
+    starContainerHighlightStart: {
+      borderTopLeftRadius: 50,
+      borderBottomLeftRadius: 50,
+    },
+    starContainerHighlightEnd: {
+      borderTopRightRadius: 50,
+      borderBottomRightRadius: 50,
+    },
+  });

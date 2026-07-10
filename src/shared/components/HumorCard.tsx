@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
-import { theme } from "./../../../themes/Theme";
+import { AppTheme } from "./../../../themes/Theme";
+import { useTheme } from "./../theme/ThemeContext";
 import { StarRating } from "./StarRating";
 
 interface IHumorCardProps {
@@ -12,6 +13,9 @@ interface IHumorCardProps {
 };
 
 export function HumorCard({dateTime, rate, description, onPress}: IHumorCardProps) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <Text 
@@ -45,21 +49,22 @@ export function HumorCard({dateTime, rate, description, onPress}: IHumorCardProp
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: theme.colors.paper,
-    padding: 8,
-    borderRadius: 8,
-    gap: 8,
-  },
-  dateTimeText: {
-    color: theme.colors.textPlaceholder,
-    fontFamily: theme.fonts.family.regular,
-    fontSize: theme.fonts.sizes.body,
-  },
-  descriptionText: {
-    color: theme.colors.text,
-    fontFamily: theme.fonts.family.regular,
-    fontSize: theme.fonts.sizes.body,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.paper,
+      padding: 8,
+      borderRadius: 8,
+      gap: 8,
+    },
+    dateTimeText: {
+      color: theme.colors.textPlaceholder,
+      fontFamily: theme.fonts.family.regular,
+      fontSize: theme.fonts.sizes.body,
+    },
+    descriptionText: {
+      color: theme.colors.text,
+      fontFamily: theme.fonts.family.regular,
+      fontSize: theme.fonts.sizes.body,
+    },
+  });

@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { theme } from "./../../../themes/Theme";
+import { AppTheme } from "./../../../themes/Theme";
+import { useTheme } from "./../theme/ThemeContext";
 
 type IHeaderProps = {
   userName?: string;
@@ -9,6 +10,9 @@ type IHeaderProps = {
 };
 
 export const Header = ({ userName, actions }: IHeaderProps) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <View style={styles.headerContainer}>
       <View style={[styles.headerContent, actions != null && styles.headerContentWithActions]}>
@@ -26,37 +30,38 @@ export const Header = ({ userName, actions }: IHeaderProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  headerContainer: {
-    padding: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    minHeight: 56
-  },
-  headerContent: {
-    alignSelf: "stretch",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  headerContentWithActions: {
-    paddingHorizontal: 32
-  },
-  headerActions: {
-    position: "absolute",
-    right: 8,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center"
-  },
-  headerText: {
-    fontSize: theme.fonts.sizes.title,
-    fontFamily: theme.fonts.family.regular,
-    color: theme.colors.text,
-    textAlign: "center"
-  },
-  headerTextBold: {
-    fontFamily: theme.fonts.family.bold,
-    color: theme.colors.primary
-  }
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    headerContainer: {
+      padding: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      position: "relative",
+      minHeight: 56
+    },
+    headerContent: {
+      alignSelf: "stretch",
+      justifyContent: "center",
+      alignItems: "center"
+    },
+    headerContentWithActions: {
+      paddingHorizontal: 32
+    },
+    headerActions: {
+      position: "absolute",
+      right: 8,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center"
+    },
+    headerText: {
+      fontSize: theme.fonts.sizes.title,
+      fontFamily: theme.fonts.family.regular,
+      color: theme.colors.text,
+      textAlign: "center"
+    },
+    headerTextBold: {
+      fontFamily: theme.fonts.family.bold,
+      color: theme.colors.primary
+    }
+  });

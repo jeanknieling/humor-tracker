@@ -2,10 +2,10 @@ import { NavigationContainer, RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { theme } from './../themes/Theme';
 import { DetailPage } from './screens/Detail';
 import { HomePage } from './screens/Home';
 import { SetUserNamePage } from './screens/SetUserName';
+import { useTheme } from './shared/theme/ThemeContext';
 
 type TScreenDefinitions = {
   home: { newName?: string } | undefined;
@@ -16,6 +16,8 @@ type TScreenDefinitions = {
 const Stack = createNativeStackNavigator<TScreenDefinitions>();
 
 export const AppRouters = () => {
+  const { theme } = useTheme();
+
   return (
     <NavigationContainer>
       <Stack.Navigator 
@@ -28,7 +30,7 @@ export const AppRouters = () => {
       }}
       screenLayout={({children}) => (
         <SafeAreaView 
-          style={{flex: 1}}
+          style={{flex: 1, backgroundColor: theme.colors.background}}
           edges={['top', 'left', 'right']}
         >
           {children}

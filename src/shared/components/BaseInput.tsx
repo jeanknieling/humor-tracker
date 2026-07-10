@@ -1,5 +1,8 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { theme } from "../../../themes/Theme";
+import { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { AppTheme } from "../../../themes/Theme";
+import { useTheme } from "../theme/ThemeContext";
 
 type IBaseInputProps = {
   children: React.ReactNode;
@@ -9,7 +12,10 @@ type IBaseInputProps = {
   onChangeText?: (text: string) => string;
 }
 
-export const BaseInput = ({ children, label, asButton, onPress, onChangeText }: IBaseInputProps) => {
+export const BaseInput = ({ children, label, asButton, onPress }: IBaseInputProps) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <View style={styles.baseInputContainer}>
       <Text style={styles.label}>{label}</Text>
@@ -32,20 +38,21 @@ export const BaseInput = ({ children, label, asButton, onPress, onChangeText }: 
   );
 }
 
-const styles = StyleSheet.create({
-  baseInputContainer: {
-    gap: 4,
-  },
-  label: {
-    color: theme.colors.text,
-    fontFamily: theme.fonts.family.regular,
-    fontSize: theme.fonts.sizes.body,
-  },
-  baseInput: {
-    borderRadius: 8,
-    backgroundColor: theme.colors.background,
-  },
-  baseInputPressed: {
-    opacity: 0.5,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    baseInputContainer: {
+      gap: 4,
+    },
+    label: {
+      color: theme.colors.text,
+      fontFamily: theme.fonts.family.regular,
+      fontSize: theme.fonts.sizes.body,
+    },
+    baseInput: {
+      borderRadius: 8,
+      backgroundColor: theme.colors.background,
+    },
+    baseInputPressed: {
+      opacity: 0.5,
+    },
+  });

@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { theme } from "../../../themes/Theme";
+import { AppTheme } from "../../../themes/Theme";
+import { useTheme } from "../theme/ThemeContext";
 
 interface IFooterProps {
   isFocused: boolean;
@@ -10,6 +12,8 @@ interface IFooterProps {
 
 export const Footer = ({ children, isFocused }: IFooterProps) => {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
     <View 
@@ -22,12 +26,13 @@ export const Footer = ({ children, isFocused }: IFooterProps) => {
   );
 }
 
-const styles = StyleSheet.create({
-  footerContainer: {
-    padding: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    backgroundColor: theme.colors.paper,
-    ...theme.shadows.default,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    footerContainer: {
+      padding: 16,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      backgroundColor: theme.colors.paper,
+      ...theme.shadows.default,
+    },
+  });
