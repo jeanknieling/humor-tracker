@@ -1,5 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -10,7 +10,7 @@ import {
   Text,
   TextInput,
   TouchableWithoutFeedback,
-  View,
+  View
 } from "react-native";
 
 import { theme } from "./../../themes/Theme";
@@ -31,18 +31,12 @@ export interface IUserHumor {
 export type SortField = "dateTime" | "rate" | "description";
 export type SortDir = "asc" | "desc";
 
-function sortHumorList(
-  list: IUserHumor[],
-  field: SortField,
-  dir: SortDir
-): IUserHumor[] {
+function sortHumorList(list: IUserHumor[], field: SortField, dir: SortDir): IUserHumor[] {
   const listCopy = [...list];
 
   listCopy.sort((a, b) => {
     if (field === "dateTime") {
-      return dir === "desc"
-        ? b.dateTime - a.dateTime
-        : a.dateTime - b.dateTime;
+      return dir === "desc" ? b.dateTime - a.dateTime : a.dateTime - b.dateTime;
     }
 
     if (field === "rate") {
@@ -50,7 +44,7 @@ function sortHumorList(
     }
 
     const descriptionCompare = a.description.localeCompare(b.description, "pt-BR", {
-      sensitivity: "base",
+      sensitivity: "base"
     });
     return dir === "desc" ? -descriptionCompare : descriptionCompare;
   });
@@ -66,8 +60,15 @@ export const HomePage = () => {
   const [selectedRate, setSelectedRate] = useState<number>(0);
   const [sortField, setSortField] = useState<SortField>("dateTime");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [sortExpanded, setSortExpanded] = useState(false);
   const isFocused = useIsFocused();
+  const canSort = userHumorList.length > 1;
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setSortExpanded(false);
+  };
 
   const sortedList = useMemo(
     () => sortHumorList(userHumorList, sortField, sortDir),
@@ -99,7 +100,7 @@ export const HomePage = () => {
     { field: "rate", dir: "desc", label: "Nota (maior primeiro)" },
     { field: "rate", dir: "asc", label: "Nota (menor primeiro)" },
     { field: "description", dir: "asc", label: "Descrição (A–Z)" },
-    { field: "description", dir: "desc", label: "Descrição (Z–A)" },
+    { field: "description", dir: "desc", label: "Descrição (Z–A)" }
   ];
 
   return (
@@ -107,15 +108,15 @@ export const HomePage = () => {
       <Header
         userName={userName}
         actions={
-          userHumorList.length > 1 && (
+          !!userName && (
             <Pressable
-              onPress={() => setSortMenuOpen(true)}
+              onPress={() => setMenuOpen(true)}
               hitSlop={12}
             >
-              <Ionicons 
-                name="ellipsis-vertical" 
-                size={24} 
-                color={theme.colors.text} 
+              <Ionicons
+                name="ellipsis-vertical"
+                size={24}
+                color={theme.colors.text}
               />
             </Pressable>
           )
@@ -123,38 +124,63 @@ export const HomePage = () => {
       />
 
       <Modal
-        visible={sortMenuOpen}
+        visible={menuOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => setSortMenuOpen(false)}
+        onRequestClose={closeMenu}
       >
-        <TouchableWithoutFeedback onPress={() => setSortMenuOpen(false)}>
+        <TouchableWithoutFeedback onPress={closeMenu}>
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalSheet}>
-                <Text style={styles.modalTitle}>Ordenar por</Text>
-                {sortOptions.map((opt) => (
-                  <Pressable
-                    key={`${opt.field}-${opt.dir}`}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setSortField(opt.field);
-                      setSortDir(opt.dir);
-                      setSortMenuOpen(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.modalOptionText,
-                        sortField === opt.field &&
-                          sortDir === opt.dir &&
-                          styles.modalOptionTextActive,
-                      ]}
+                <Text style={styles.modalTitle}>Opções</Text>
+                <Pressable
+                  style={styles.modalOption}
+                  onPress={() => {
+                    closeMenu();
+                    navigation.navigate("setUserName");
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>Alterar nome</Text>
+                </Pressable>
+                {canSort && (
+                  <>
+                    <Pressable
+                      style={styles.modalOptionRow}
+                      onPress={() => setSortExpanded((open) => !open)}
                     >
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text style={styles.modalOptionText}>Ordenar por</Text>
+                      <Ionicons
+                        name={sortExpanded ? "chevron-up" : "chevron-down"}
+                        size={18}
+                        color={theme.colors.text}
+                      />
+                    </Pressable>
+                    {sortExpanded &&
+                      sortOptions.map((opt) => (
+                        <Pressable
+                          key={`${opt.field}-${opt.dir}`}
+                          style={styles.modalOptionNested}
+                          onPress={() => {
+                            setSortField(opt.field);
+                            setSortDir(opt.dir);
+                            closeMenu();
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.modalOptionText,
+                              sortField === opt.field &&
+                                sortDir === opt.dir &&
+                                styles.modalOptionTextActive
+                            ]}
+                          >
+                            {opt.label}
+                          </Text>
+                        </Pressable>
+                      ))}
+                  </>
+                )}
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -189,7 +215,11 @@ export const HomePage = () => {
             {!userName ? "Qual é o seu nome?" : "Como está seu humor hoje?"}
           </Text>
           {!userName ? (
-            <BaseInput label="Nome" asButton onPress={() => navigation.navigate("setUserName")}>
+            <BaseInput
+              label="Nome"
+              asButton
+              onPress={() => navigation.navigate("setUserName")}
+            >
               <TextInput
                 style={styles.footerInput}
                 placeholder="Escreva seu nome aqui..."
@@ -216,18 +246,18 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
     gap: 8,
-    flexGrow: 1,
+    flexGrow: 1
   },
   emptyListContainer: {
     flexGrow: 1,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   emptyListText: {
     color: theme.colors.textPlaceholder,
     fontFamily: theme.fonts.family.italic,
     fontSize: theme.fonts.sizes.subtitle,
-    textAlign: "center",
+    textAlign: "center"
   },
   modalOverlay: {
     flex: 1,
@@ -235,48 +265,61 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "flex-end",
     paddingTop: 56,
-    paddingRight: 8,
+    paddingRight: 8
   },
   modalSheet: {
     backgroundColor: theme.colors.paper,
     borderRadius: 8,
     minWidth: 220,
     ...theme.shadows.default,
-    overflow: "hidden",
+    overflow: "hidden"
   },
   modalTitle: {
     padding: 16,
     fontFamily: theme.fonts.family.bold,
     fontSize: theme.fonts.sizes.body,
     color: theme.colors.text,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.background
   },
   modalOption: {
     paddingVertical: 12,
+    paddingHorizontal: 16
+  },
+  modalOptionRow: {
+    paddingVertical: 12,
     paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12
+  },
+  modalOptionNested: {
+    paddingVertical: 12,
+    paddingLeft: 28,
+    paddingRight: 16
   },
   modalOptionText: {
     fontFamily: theme.fonts.family.regular,
     fontSize: theme.fonts.sizes.body,
-    color: theme.colors.text,
+    color: theme.colors.text
   },
   modalOptionTextActive: {
     color: theme.colors.primary,
-    fontFamily: theme.fonts.family.bold,
+    fontFamily: theme.fonts.family.bold
   },
   footerContainer: {
-    gap: 16,
+    gap: 16
   },
   footerTitle: {
     textAlign: "center",
     color: theme.colors.text,
     fontFamily: theme.fonts.family.regular,
-    fontSize: theme.fonts.sizes.body,
+    fontSize: theme.fonts.sizes.body
   },
   footerInput: {
     color: theme.colors.text,
     fontFamily: theme.fonts.family.regular,
     fontSize: theme.fonts.sizes.body,
-    padding: 12,
-  },
+    padding: 12
+  }
 });

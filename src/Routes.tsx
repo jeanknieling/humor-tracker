@@ -68,7 +68,7 @@ export const AppRouters = () => {
           />
           <Stack.Screen name="setUserName" component={SetUserNamePage} 
           options={{
-            sheetAllowedDetents: [0.4],
+            sheetAllowedDetents: [0.6],
           }}
         />
         </Stack.Group>

@@ -11,15 +11,17 @@ type IHeaderProps = {
 export const Header = ({ userName, actions }: IHeaderProps) => {
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.headerContent}>
-        <Text style={styles.headerText}>Olá, </Text>
-        <Text style={[styles.headerText, styles.headerTextBold]}>
-          {userName ? `${userName}!` : "Seu nome é?"}
+      <View style={[styles.headerContent, actions != null && styles.headerContentWithActions]}>
+        <Text
+          style={styles.headerText}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          Olá,{" "}
+          <Text style={styles.headerTextBold}>{userName ? `${userName}!` : "Seu nome é?"}</Text>
         </Text>
       </View>
-      {actions ? (
-        <View style={styles.headerActions}>{actions}</View>
-      ) : null}
+      {actions ? <View style={styles.headerActions}>{actions}</View> : null}
     </View>
   );
 };
@@ -30,27 +32,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    minHeight: 56,
+    minHeight: 56
   },
   headerContent: {
-    flexDirection: "row",
+    alignSelf: "stretch",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
+  },
+  headerContentWithActions: {
+    paddingHorizontal: 32
   },
   headerActions: {
     position: "absolute",
     right: 8,
     top: 0,
     bottom: 0,
-    justifyContent: "center",
+    justifyContent: "center"
   },
   headerText: {
     fontSize: theme.fonts.sizes.title,
     fontFamily: theme.fonts.family.regular,
     color: theme.colors.text,
+    textAlign: "center"
   },
   headerTextBold: {
     fontFamily: theme.fonts.family.bold,
-    color: theme.colors.primary,
-  },
+    color: theme.colors.primary
+  }
 });
