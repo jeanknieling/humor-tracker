@@ -46,7 +46,7 @@ const darkColors = {
   error: "#FF6B6B",
   highlight: "#E0D53B",
   backgroundHighlight: "rgba(224, 213, 59, 0.22)",
-  backgroundOverlay: "rgba(0,0,0,0.6)"
+  backgroundOverlay: "rgba(255,255,255,0.4)"
 } as const;
 
 export type ThemeColors = {
