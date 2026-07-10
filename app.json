@@ -1,6 +1,8 @@
 {
   "expo": {
-    "name": "humor-tracker",
+    "name": "Humor Tracker",
+    "description": "Acompanhe seu humor diário e saiba como está se sentindo.",
+    "owner": "Jean Knieling",
     "slug": "humor-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +12,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#a78bff"
     },
     "ios": {
       "supportsTablet": true
@@ -18,10 +20,11 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#a78bff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.jeanknieling.humortracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
