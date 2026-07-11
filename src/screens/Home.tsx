@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   FlatList,
   Modal,
   Pressable,
@@ -67,10 +68,39 @@ export const HomePage = () => {
   const [sortExpanded, setSortExpanded] = useState(false);
   const isFocused = useIsFocused();
   const canSort = userHumorList.length > 1;
+  const hasHumorCards = userHumorList.length > 0;
 
   const closeMenu = () => {
     setMenuOpen(false);
     setSortExpanded(false);
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      await AsyncStorage.setItem("humor-list", JSON.stringify([]));
+      setUserHumorList([]);
+    } catch {
+      Alert.alert("Erro ao excluir os registros de humor");
+    }
+  };
+
+  const handleConfirmDeleteAll = () => {
+    closeMenu();
+    Alert.alert(
+      "Excluir todos",
+      "Tem certeza que deseja excluir todos os registros de humor?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: handleDeleteAll
+        }
+      ]
+    );
   };
 
   const sortedList = useMemo(
@@ -202,6 +232,22 @@ export const HomePage = () => {
                       ))}
                   </>
                 )}
+
+                {hasHumorCards && (
+                  <Pressable
+                    style={styles.modalOptionRow}
+                    onPress={handleConfirmDeleteAll}
+                  >
+                    <Text style={[styles.modalOptionText, styles.modalOptionTextDanger]}>
+                      Excluir todos
+                    </Text>
+                    <Ionicons
+                      name="trash-outline"
+                      size={18}
+                      color={theme.colors.error}
+                    />
+                  </Pressable>
+                )}
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -324,6 +370,9 @@ const createStyles = (theme: AppTheme) =>
     modalOptionTextActive: {
       color: theme.colors.primary,
       fontFamily: theme.fonts.family.bold
+    },
+    modalOptionTextDanger: {
+      color: theme.colors.error
     },
     footerContainer: {
       gap: 16

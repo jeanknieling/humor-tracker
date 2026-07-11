@@ -1,5 +1,6 @@
 import { NavigationContainer, RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Keyboard, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DetailPage } from './screens/Detail';
@@ -57,7 +58,11 @@ export const AppRouters = () => {
               }}
               edges={['left', 'right']}
             >
-              {children}
+              <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <View style={{ flex: 1 }}>
+                  {children}
+                </View>
+              </TouchableWithoutFeedback>
             </SafeAreaView>
           )}
         >
