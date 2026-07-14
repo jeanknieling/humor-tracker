@@ -1,7 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect, useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -13,137 +12,208 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { AppTheme } from "./../../themes/Theme";
-import { TNavigationScreenProps, TRouteProps } from "./../Routes";
+import { TNavigationScreenProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
+import { Button } from "./../shared/components/Button";
 import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
 import { HumorCard } from "./../shared/components/HumorCard";
 import { StarRating } from "./../shared/components/StarRating";
+import { loadHumorList, loadUserName, saveHumorList } from "./../shared/storage/appStorage";
 import { useTheme } from "./../shared/theme/ThemeContext";
+import {
+  BulkDeleteScope,
+  HumorSortDirection,
+  HumorSortField,
+  IUserHumor
+} from "./../shared/types/humor";
+import { formatDayLabel, isSameDay, isToday, startOfDay } from "./../shared/utils/date";
 
-export interface IUserHumor {
-  id: string;
-  dateTime: number;
-  rate: number;
-  description: string;
-}
+function sortHumorList(
+  list: IUserHumor[],
+  field: HumorSortField,
+  direction: HumorSortDirection
+): IUserHumor[] {
+  const sorted = [...list];
 
-export type SortField = "dateTime" | "rate" | "description";
-export type SortDir = "asc" | "desc";
-
-function sortHumorList(list: IUserHumor[], field: SortField, dir: SortDir): IUserHumor[] {
-  const listCopy = [...list];
-
-  listCopy.sort((a, b) => {
+  sorted.sort((a, b) => {
     if (field === "dateTime") {
-      return dir === "desc" ? b.dateTime - a.dateTime : a.dateTime - b.dateTime;
+      return direction === "desc" ? b.dateTime - a.dateTime : a.dateTime - b.dateTime;
     }
 
     if (field === "rate") {
-      return dir === "desc" ? b.rate - a.rate : a.rate - b.rate;
+      return direction === "desc" ? b.rate - a.rate : a.rate - b.rate;
     }
 
     const descriptionCompare = a.description.localeCompare(b.description, "pt-BR", {
       sensitivity: "base"
     });
-    return dir === "desc" ? -descriptionCompare : descriptionCompare;
+    return direction === "desc" ? -descriptionCompare : descriptionCompare;
   });
 
-  return listCopy;
+  return sorted;
 }
+
+const SORT_OPTIONS: { field: HumorSortField; direction: HumorSortDirection; label: string }[] = [
+  { field: "dateTime", direction: "desc", label: "Data (mais recente)" },
+  { field: "dateTime", direction: "asc", label: "Data (mais antiga)" },
+  { field: "rate", direction: "desc", label: "Nota (maior primeiro)" },
+  { field: "rate", direction: "asc", label: "Nota (menor primeiro)" },
+  { field: "description", direction: "asc", label: "Descrição (A–Z)" },
+  { field: "description", direction: "desc", label: "Descrição (Z–A)" }
+];
 
 export const HomePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
-  const { params } = useRoute<TRouteProps<"home">>();
   const { theme, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [userName, setUserName] = useState<string | undefined>(params?.newName);
-  const [userHumorList, setUserHumorList] = useState<IUserHumor[]>([]);
-  const [selectedRate, setSelectedRate] = useState<number>(0);
-  const [sortField, setSortField] = useState<SortField>("dateTime");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [sortExpanded, setSortExpanded] = useState(false);
-  const isFocused = useIsFocused();
-  const canSort = userHumorList.length > 1;
-  const hasHumorCards = userHumorList.length > 0;
+  const isScreenFocused = useIsFocused();
 
-  const closeMenu = () => {
-    setMenuOpen(false);
-    setSortExpanded(false);
+  const [userName, setUserName] = useState("");
+  const [allHumors, setAllHumors] = useState<IUserHumor[]>([]);
+  const [selectedDay, setSelectedDay] = useState<Date>(() => startOfDay(new Date()));
+  const [isDayPickerVisible, setIsDayPickerVisible] = useState(false);
+  const [draftRate, setDraftRate] = useState(0);
+  const [sortField, setSortField] = useState<HumorSortField>("dateTime");
+  const [sortDirection, setSortDirection] = useState<HumorSortDirection>("desc");
+  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
+  const [isSortSubmenuOpen, setIsSortSubmenuOpen] = useState(false);
+  const [bulkDeleteScope, setBulkDeleteScope] = useState<BulkDeleteScope | null>(null);
+  const [selectedHumorIds, setSelectedHumorIds] = useState<string[]>([]);
+
+  const isSelectionMode = bulkDeleteScope != null;
+  const hasUserName = Boolean(userName.trim());
+  const showHeaderActions = hasUserName && !isSelectionMode;
+
+  const humorsForSelectedDay = useMemo(
+    () => allHumors.filter((humor) => isSameDay(new Date(humor.dateTime), selectedDay)),
+    [allHumors, selectedDay]
+  );
+
+  const visibleHumorList = bulkDeleteScope === "all" ? allHumors : humorsForSelectedDay;
+  const sortedVisibleHumors = useMemo(
+    () => sortHumorList(visibleHumorList, sortField, sortDirection),
+    [visibleHumorList, sortField, sortDirection]
+  );
+
+  const canSort = visibleHumorList.length > 1;
+  const hasHumorsOnSelectedDay = humorsForSelectedDay.length > 0;
+  const hasAnyHumors = allHumors.length > 0;
+  const selectedDayNumber = selectedDay.getDate();
+  const selectedDayLabel = formatDayLabel(selectedDay);
+  const areAllVisibleSelected =
+    visibleHumorList.length > 0 &&
+    visibleHumorList.every((humor) => selectedHumorIds.includes(humor.id));
+
+  const closeOptionsMenu = () => {
+    setIsOptionsMenuOpen(false);
+    setIsSortSubmenuOpen(false);
   };
 
-  const handleDeleteAll = async () => {
-    try {
-      await AsyncStorage.setItem("humor-list", JSON.stringify([]));
-      setUserHumorList([]);
-    } catch {
-      Alert.alert("Erro ao excluir os registros de humor");
+  const exitSelectionMode = () => {
+    setBulkDeleteScope(null);
+    setSelectedHumorIds([]);
+  };
+
+  const persistHumorList = async (nextList: IUserHumor[]) => {
+    await saveHumorList(nextList);
+    setAllHumors(nextList);
+  };
+
+  const enterSelectionMode = (scope: BulkDeleteScope) => {
+    closeOptionsMenu();
+    setBulkDeleteScope(scope);
+    setSelectedHumorIds([]);
+  };
+
+  const handleStartBulkDelete = () => {
+    closeOptionsMenu();
+    Alert.alert("Excluir registros", "Quais cards deseja selecionar para excluir?", [
+      { text: "Cancelar", style: "cancel" },
+      ...(hasHumorsOnSelectedDay
+        ? [
+            {
+              text: `Do dia (${selectedDayLabel})`,
+              onPress: () => enterSelectionMode("day")
+            }
+          ]
+        : []),
+      {
+        text: "Todos os cards",
+        onPress: () => enterSelectionMode("all")
+      }
+    ]);
+  };
+
+  const toggleHumorSelection = (id: string) => {
+    setSelectedHumorIds((currentIds) =>
+      currentIds.includes(id) ? currentIds.filter((itemId) => itemId !== id) : [...currentIds, id]
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    if (areAllVisibleSelected) {
+      setSelectedHumorIds([]);
+      return;
     }
+    setSelectedHumorIds(visibleHumorList.map((humor) => humor.id));
   };
 
-  const handleConfirmDeleteAll = () => {
-    closeMenu();
+  const handleDeleteSelectedHumors = () => {
+    if (selectedHumorIds.length === 0) return;
+
+    const selectedCount = selectedHumorIds.length;
+
     Alert.alert(
-      "Excluir todos",
-      "Tem certeza que deseja excluir todos os registros de humor?",
+      "Excluir selecionados",
+      `Tem certeza que deseja excluir ${selectedCount} registro${selectedCount > 1 ? "s" : ""}?`,
       [
-        {
-          text: "Cancelar",
-          style: "cancel"
-        },
+        { text: "Cancelar", style: "cancel" },
         {
           text: "Excluir",
           style: "destructive",
-          onPress: handleDeleteAll
+          onPress: async () => {
+            try {
+              const idsToDelete = new Set(selectedHumorIds);
+              const remainingHumors = allHumors.filter((humor) => !idsToDelete.has(humor.id));
+              await persistHumorList(remainingHumors);
+              exitSelectionMode();
+            } catch {
+              Alert.alert("Erro ao excluir os registros de humor");
+            }
+          }
         }
       ]
     );
   };
 
-  const sortedList = useMemo(
-    () => sortHumorList(userHumorList, sortField, sortDir),
-    [userHumorList, sortField, sortDir]
-  );
-
-  useEffect(() => {
-    if (params?.newName?.trim()) setUserName(params?.newName ?? "");
-  }, [params?.newName]);
-
-  useEffect(() => {
-    AsyncStorage.getItem("user-name").then((value) => {
-      setUserName(value ?? "");
-    });
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
-      setSelectedRate(0);
-      AsyncStorage.getItem("humor-list").then((value) => {
-        setUserHumorList(value ? JSON.parse(value) : []);
-      });
+      setDraftRate(0);
+
+      loadUserName()
+        .then(setUserName)
+        .catch(() => setUserName(""));
+
+      loadHumorList()
+        .then(setAllHumors)
+        .catch(() => setAllHumors([]));
     }, [])
   );
-
-  const sortOptions: { field: SortField; dir: SortDir; label: string }[] = [
-    { field: "dateTime", dir: "desc", label: "Data (mais recente)" },
-    { field: "dateTime", dir: "asc", label: "Data (mais antiga)" },
-    { field: "rate", dir: "desc", label: "Nota (maior primeiro)" },
-    { field: "rate", dir: "asc", label: "Nota (menor primeiro)" },
-    { field: "description", dir: "asc", label: "Descrição (A–Z)" },
-    { field: "description", dir: "desc", label: "Descrição (Z–A)" }
-  ];
 
   return (
     <>
       <Header
-        userName={userName}
+        userName={userName.trim() || undefined}
+        selectedDayNumber={showHeaderActions ? selectedDayNumber : undefined}
+        onPressCalendar={showHeaderActions ? () => setIsDayPickerVisible(true) : undefined}
         actions={
-          !!userName && (
+          showHeaderActions ? (
             <Pressable
-              onPress={() => setMenuOpen(true)}
+              onPress={() => setIsOptionsMenuOpen(true)}
               hitSlop={12}
             >
               <Ionicons
@@ -152,17 +222,43 @@ export const HomePage = () => {
                 color={theme.colors.text}
               />
             </Pressable>
-          )
+          ) : undefined
         }
       />
 
+      {isSelectionMode && (
+        <Pressable
+          style={styles.selectAllRow}
+          onPress={toggleSelectAllVisible}
+        >
+          <Ionicons
+            name={areAllVisibleSelected ? "checkbox" : "square-outline"}
+            size={22}
+            color={areAllVisibleSelected ? theme.colors.primary : theme.colors.textPlaceholder}
+          />
+          <Text style={styles.selectAllLabel}>Selecionar todos</Text>
+        </Pressable>
+      )}
+
+      <DateTimePickerModal
+        isVisible={isDayPickerVisible}
+        mode="date"
+        date={selectedDay}
+        isDarkModeEnabled={isDark}
+        onConfirm={(date) => {
+          setSelectedDay(startOfDay(date));
+          setIsDayPickerVisible(false);
+        }}
+        onCancel={() => setIsDayPickerVisible(false)}
+      />
+
       <Modal
-        visible={menuOpen}
+        visible={isOptionsMenuOpen}
         transparent
         animationType="fade"
-        onRequestClose={closeMenu}
+        onRequestClose={closeOptionsMenu}
       >
-        <TouchableWithoutFeedback onPress={closeMenu}>
+        <TouchableWithoutFeedback onPress={closeOptionsMenu}>
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalSheet}>
@@ -170,13 +266,13 @@ export const HomePage = () => {
                 <Pressable
                   style={styles.modalOptionRow}
                   onPress={() => {
-                    closeMenu();
+                    closeOptionsMenu();
                     navigation.navigate("setUserName");
                   }}
                 >
                   <Text style={styles.modalOptionText}>Alterar nome</Text>
                   <Ionicons
-                    name={"pencil-outline"}
+                    name="pencil-outline"
                     size={18}
                     color={theme.colors.text}
                   />
@@ -198,48 +294,51 @@ export const HomePage = () => {
                   <>
                     <Pressable
                       style={styles.modalOptionRow}
-                      onPress={() => setSortExpanded((open) => !open)}
+                      onPress={() => setIsSortSubmenuOpen((open) => !open)}
                     >
                       <Text style={styles.modalOptionText}>Ordenar por</Text>
                       <Ionicons
-                        name={sortExpanded ? "chevron-up" : "chevron-down"}
+                        name={isSortSubmenuOpen ? "chevron-up" : "chevron-down"}
                         size={18}
                         color={theme.colors.text}
                       />
                     </Pressable>
-                    {sortExpanded &&
-                      sortOptions.map((opt) => (
-                        <Pressable
-                          key={`${opt.field}-${opt.dir}`}
-                          style={styles.modalOptionNested}
-                          onPress={() => {
-                            setSortField(opt.field);
-                            setSortDir(opt.dir);
-                            closeMenu();
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.modalOptionText,
-                              sortField === opt.field &&
-                                sortDir === opt.dir &&
-                                styles.modalOptionTextActive
-                            ]}
+                    {isSortSubmenuOpen &&
+                      SORT_OPTIONS.map((option) => {
+                        const isActive =
+                          sortField === option.field && sortDirection === option.direction;
+
+                        return (
+                          <Pressable
+                            key={`${option.field}-${option.direction}`}
+                            style={styles.modalOptionNested}
+                            onPress={() => {
+                              setSortField(option.field);
+                              setSortDirection(option.direction);
+                              closeOptionsMenu();
+                            }}
                           >
-                            {opt.label}
-                          </Text>
-                        </Pressable>
-                      ))}
+                            <Text
+                              style={[
+                                styles.modalOptionText,
+                                isActive && styles.modalOptionTextActive
+                              ]}
+                            >
+                              {option.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
                   </>
                 )}
 
-                {hasHumorCards && (
+                {hasAnyHumors && (
                   <Pressable
                     style={styles.modalOptionRow}
-                    onPress={handleConfirmDeleteAll}
+                    onPress={handleStartBulkDelete}
                   >
                     <Text style={[styles.modalOptionText, styles.modalOptionTextDanger]}>
-                      Excluir todos
+                      Excluir vários
                     </Text>
                     <Ionicons
                       name="trash-outline"
@@ -256,54 +355,102 @@ export const HomePage = () => {
 
       <FlatList
         contentContainerStyle={styles.listContainer}
-        data={sortedList}
+        data={sortedVisibleHumors}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <HumorCard
-            dateTime={item.dateTime}
-            rate={item.rate}
-            description={item.description}
-            onPress={() => navigation.navigate("detail", { id: item.id })}
-          />
-        )}
+        renderItem={({ item }) => {
+          const isHumorSelected = selectedHumorIds.includes(item.id);
+
+          return (
+            <HumorCard
+              dateTime={item.dateTime}
+              rate={item.rate}
+              description={item.description}
+              selectionMode={isSelectionMode}
+              selected={isHumorSelected}
+              onPress={() => {
+                if (isSelectionMode) {
+                  toggleHumorSelection(item.id);
+                  return;
+                }
+                navigation.navigate("detail", { id: item.id });
+              }}
+            />
+          );
+        }}
         ListEmptyComponent={() => (
           <View style={styles.emptyListContainer}>
             <Text style={styles.emptyListText}>
-              Você ainda não {"\n"}
-              registrou nenhum humor!
+              {isToday(selectedDay) ? (
+                <>
+                  Nenhum humor {"\n"}
+                  registrado para hoje.
+                </>
+              ) : (
+                <>
+                  Nenhum humor {"\n"}
+                  registrado em {selectedDayLabel}.
+                </>
+              )}
             </Text>
           </View>
         )}
       />
 
-      <Footer isFocused={isFocused}>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerTitle}>
-            {!userName ? "Qual é o seu nome?" : "Como está seu humor hoje?"}
-          </Text>
-          {!userName ? (
-            <BaseInput
-              label="Nome"
-              asButton
-              onPress={() => navigation.navigate("setUserName")}
-            >
-              <TextInput
-                style={styles.footerInput}
-                placeholder="Escreva seu nome aqui..."
-                placeholderTextColor={theme.colors.textPlaceholder}
-                editable={false}
-              />
-            </BaseInput>
-          ) : (
-            <StarRating
-              rate={selectedRate}
-              onChange={(rate) => {
-                setSelectedRate(rate);
-                navigation.navigate("detail", { rate });
-              }}
+      <Footer isFocused={isScreenFocused}>
+        {isSelectionMode ? (
+          <View style={styles.selectionFooter}>
+            <Button
+              title="Cancelar"
+              variant="outlined"
+              flex
+              onPress={exitSelectionMode}
             />
-          )}
-        </View>
+            <Button
+              title={
+                selectedHumorIds.length > 0 ? `Excluir (${selectedHumorIds.length})` : "Excluir"
+              }
+              flex
+              variant="outlined"
+              color={theme.colors.error}
+              onPress={selectedHumorIds.length > 0 ? handleDeleteSelectedHumors : undefined}
+            />
+          </View>
+        ) : (
+          <View style={styles.footerContainer}>
+            <Text style={styles.footerTitle}>
+              {!hasUserName
+                ? "Qual é o seu nome?"
+                : isToday(selectedDay)
+                  ? "Como está seu humor hoje?"
+                  : `Como estava seu humor em ${selectedDayLabel}?`}
+            </Text>
+            {!hasUserName ? (
+              <BaseInput
+                label="Nome"
+                asButton
+                onPress={() => navigation.navigate("setUserName")}
+              >
+                <TextInput
+                  style={styles.footerInput}
+                  placeholder="Escreva seu nome aqui..."
+                  placeholderTextColor={theme.colors.textPlaceholder}
+                  editable={false}
+                />
+              </BaseInput>
+            ) : (
+              <StarRating
+                rate={draftRate}
+                onChange={(rate) => {
+                  setDraftRate(rate);
+                  navigation.navigate("detail", {
+                    rate,
+                    selectedDay: selectedDay.getTime()
+                  });
+                }}
+              />
+            )}
+          </View>
+        )}
       </Footer>
     </>
   );
@@ -311,6 +458,19 @@ export const HomePage = () => {
 
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
+    selectAllRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingLeft: 24,
+      paddingRight: 16,
+      paddingBottom: 8
+    },
+    selectAllLabel: {
+      fontFamily: theme.fonts.family.regular,
+      fontSize: theme.fonts.sizes.body,
+      color: theme.colors.text
+    },
     listContainer: {
       padding: 16,
       gap: 8,
@@ -376,6 +536,10 @@ const createStyles = (theme: AppTheme) =>
     },
     footerContainer: {
       gap: 16
+    },
+    selectionFooter: {
+      flexDirection: "row",
+      gap: 8
     },
     footerTitle: {
       textAlign: "center",

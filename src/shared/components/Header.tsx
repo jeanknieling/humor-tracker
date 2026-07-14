@@ -1,21 +1,54 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { ReactNode, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppTheme } from "./../../../themes/Theme";
 import { useTheme } from "./../theme/ThemeContext";
 
-type IHeaderProps = {
+type HeaderProps = {
   userName?: string;
+  selectedDayNumber?: number;
+  onPressCalendar?: () => void;
   actions?: ReactNode;
 };
 
-export const Header = ({ userName, actions }: IHeaderProps) => {
+export const Header = ({ userName, selectedDayNumber, onPressCalendar, actions }: HeaderProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
+  const showCalendar = selectedDayNumber != null && onPressCalendar != null;
+  const hasTrailingActions = Boolean(actions);
+  const hasAnySideActions = showCalendar || hasTrailingActions;
+  const hasBothSideActions = showCalendar && hasTrailingActions;
+
   return (
     <View style={styles.headerContainer}>
-      <View style={[styles.headerContent, actions != null && styles.headerContentWithActions]}>
+      {showCalendar ? (
+        <View style={styles.calendarSlot}>
+          <Pressable
+            onPress={onPressCalendar}
+            style={styles.calendarButton}
+            accessibilityLabel={`Calendário, dia ${selectedDayNumber}`}
+          >
+            <View style={styles.calendarIconWrap}>
+              <Ionicons
+                name="calendar-clear-outline"
+                size={30}
+                color={theme.colors.text}
+              />
+              <Text style={styles.calendarDayText}>{selectedDayNumber}</Text>
+            </View>
+          </Pressable>
+        </View>
+      ) : null}
+
+      <View
+        style={[
+          styles.headerContent,
+          hasAnySideActions && styles.headerContentWithActions,
+          hasBothSideActions && styles.headerContentWithBothActions
+        ]}
+      >
         <Text
           style={styles.headerText}
           numberOfLines={1}
@@ -25,7 +58,8 @@ export const Header = ({ userName, actions }: IHeaderProps) => {
           <Text style={styles.headerTextBold}>{userName ? `${userName}!` : "Seu nome é?"}</Text>
         </Text>
       </View>
-      {actions ? <View style={styles.headerActions}>{actions}</View> : null}
+
+      {hasTrailingActions ? <View style={styles.headerActions}>{actions}</View> : null}
     </View>
   );
 };
@@ -46,6 +80,34 @@ const createStyles = (theme: AppTheme) =>
     },
     headerContentWithActions: {
       paddingHorizontal: 32
+    },
+    headerContentWithBothActions: {
+      paddingHorizontal: 48
+    },
+    calendarSlot: {
+      position: "absolute",
+      left: 8,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center"
+    },
+    calendarButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 4
+    },
+    calendarIconWrap: {
+      width: 34,
+      height: 34,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    calendarDayText: {
+      position: "absolute",
+      top: 12,
+      fontFamily: theme.fonts.family.bold,
+      fontSize: 14,
+      color: theme.colors.primary,
+      lineHeight: 15
     },
     headerActions: {
       position: "absolute",

@@ -49,6 +49,11 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
       <td>Defina ou altere a data e a hora do registro.</td>
     </tr>
     <tr>
+      <td>🗓️</td>
+      <td>Filtro por dia</td>
+      <td>Escolha um dia no calendário do header e veja só os humores daquela data. Novos registros herdam o dia selecionado.</td>
+    </tr>
+    <tr>
       <td>✏️</td>
       <td>Edição e exclusão</td>
       <td>Abra um card para editar ou excluir um registro.</td>
@@ -59,19 +64,19 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
       <td>Ordene os registros por data, nota ou descrição (A–Z / Z–A).</td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td>Exclusão em massa</td>
+      <td>Selecione vários cards (do dia ou de todos) e exclua de uma vez, com confirmação.</td>
+    </tr>
+    <tr>
       <td>👤</td>
       <td>Nome do usuário</td>
-      <td>Personalize o aplicativo com o seu nome e altere-o quando desejar.</td>
+      <td>Personalize o aplicativo com o seu nome e altere-o quando desejar (espaços extras são removidos ao salvar).</td>
     </tr>
     <tr>
       <td>🌙</td>
       <td>Tema claro / escuro</td>
       <td>Alterne entre os temas claro e escuro, com a preferência salva no dispositivo.</td>
-    </tr>
-    <tr>
-      <td>🗑️</td>
-      <td>Excluir todos</td>
-      <td>Remova todos os registros de uma vez, com confirmação.</td>
     </tr>
     <tr>
       <td>💾</td>
@@ -88,14 +93,17 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 ### 🏠 Home
 
 - 👋 Saudação personalizada com o nome do usuário
-- 📋 Lista de cards de humor
-- ⚙️ Menu de opções (alterar nome, tema, ordenação, excluir todos)
-- ⭐ Footer para iniciar um novo registro pela avaliação em estrelas
+- 🗓️ Calendário no header para filtrar humores por dia
+- 📋 Lista de cards do dia selecionado (ou de todos, no modo exclusão em massa)
+- ⚙️ Menu de opções (alterar nome, tema, ordenação, excluir vários)
+- ✅ Modo de seleção para excluir vários registros de uma vez
+- ⭐ Footer para iniciar um novo registro pela avaliação em estrelas (no dia escolhido)
 
 ### 🔍 Detalhe
 
 - ➕ Criação ou edição de um humor
 - ⭐📅📝 Avaliação, data/hora e descrição
+- 🗓️ Ao criar a partir de um dia filtrado, a data inicial já usa esse dia
 - 💾❌🗑️ Ações de salvar, cancelar e excluir
 
 ### 👤 Nome do usuário
@@ -128,11 +136,14 @@ humor-tracker/
 │   ├── Routes.tsx              # Navegação e layouts das telas
 │   ├── index.ts
 │   ├── 📱 screens/
-│   │   ├── Home.tsx            # Lista, menu e novo humor
+│   │   ├── Home.tsx            # Lista por dia, menu, seleção e novo humor
 │   │   ├── Detail.tsx          # Criar / editar / excluir humor
 │   │   └── SetUserName.tsx     # Nome do usuário
 │   └── 🧩 shared/
 │       ├── components/         # Header, Footer, HumorCard, StarRating, etc.
+│       ├── storage/            # Leitura/escrita no AsyncStorage
+│       ├── types/              # Tipos de humor e ordenação
+│       ├── utils/              # Helpers de data e formatação
 │       └── theme/              # ThemeContext (modo claro/escuro)
 ├── ⚙️ app.json
 └── 📦 package.json
@@ -153,7 +164,7 @@ humor-tracker/
 
 ```bash
 # 1. Clone o repositório
-git clone <url-do-repositorio>
+git clone "https://github.com/jeanknieling/humor-tracker"
 cd humor-tracker
 
 # 2. Instale as dependências
@@ -174,12 +185,12 @@ Depois disso:
 
 ### 📜 Scripts disponíveis
 
-| Comando                           | Descrição                            |
-| --------------------------------- | ------------------------------------ |
-| ▶️ `npm start` / `npx expo start` | Sobe o Metro bundler                 |
-| 🤖 `npm run android`              | Roda no Android (`expo run:android`) |
-| 🍎 `npm run ios`                  | Roda no iOS (`expo run:ios`)         |
-| 🌐 `npm run web`                  | Abre versão web                      |
+| Comando                           | Descrição                         |
+| --------------------------------- | --------------------------------- |
+| ▶️ `npm start` / `npx expo start` | Sobe o Metro bundler              |
+| 🤖 `npm run android`              | Abre no Android (`expo start -a`) |
+| 🍎 `npm run ios`                  | Abre no iOS (`expo start -i`)     |
+| 🌐 `npm run web`                  | Abre versão web                   |
 
 ---
 
