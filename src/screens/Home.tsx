@@ -206,6 +206,14 @@ export const HomePage = () => {
 
   return (
     <>
+      {!isScreenFocused && (
+        <Pressable
+          accessibilityLabel="Fechar"
+          onPress={() => navigation.goBack()}
+          style={[styles.sheetOverlay, { backgroundColor: theme.colors.backgroundOverlay }]}
+        />
+      )}
+
       <Header
         userName={userName.trim() || undefined}
         selectedDayNumber={showHeaderActions ? selectedDayNumber : undefined}
@@ -458,6 +466,10 @@ export const HomePage = () => {
 
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
+    sheetOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 10
+    },
     selectAllRow: {
       flexDirection: "row",
       alignItems: "center",

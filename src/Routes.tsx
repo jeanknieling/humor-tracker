@@ -50,6 +50,7 @@ export const AppRouters = () => {
           screenOptions={{
             presentation: "formSheet",
             sheetCornerRadius: 24,
+            sheetLargestUndimmedDetentIndex: "last",
             contentStyle: {
               backgroundColor: theme.colors.background,
               height: "100%"
