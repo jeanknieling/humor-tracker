@@ -24,14 +24,15 @@ export const SetUserNamePage = () => {
   }, []);
 
   const handleSaveUserName = async () => {
+    const trimmedName = userName.trim();
+
     try {
-      
-      await AsyncStorage.setItem("user-name", userName);
+      await AsyncStorage.setItem("user-name", trimmedName);
     } catch (error) {
       Alert.alert("Erro ao salvar o nome do usuário no histórico");
     }
 
-    navigation.popTo('home', { newName: userName });
+    navigation.popTo('home', { newName: trimmedName });
   }
 
   return (
