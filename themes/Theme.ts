@@ -49,7 +49,7 @@ const darkColors = {
   backgroundOverlay: "rgba(255,255,255,0.1)"
 } as const;
 
-export type ThemeColors = {
+type ThemeColors = {
   background: string;
   paper: string;
   text: string;

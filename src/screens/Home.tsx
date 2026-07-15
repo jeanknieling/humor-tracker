@@ -31,7 +31,7 @@ import {
   HumorSortField,
   IUserHumor
 } from "./../shared/types/humor";
-import { formatDayLabel, formatHumorQuestion, isSameDay, isToday, toCalendarDateKey } from "./../shared/utils/date";
+import { formatDayLabel, formatHumorQuestion, getDaysWithHumorKeys, isSameDay, isToday } from "./../shared/utils/date";
 
 function sortHumorList(
   list: IUserHumor[],
@@ -94,13 +94,7 @@ export const HomePage = () => {
     [allHumors, selectedDay]
   );
 
-  const daysWithHumor = useMemo(() => {
-    const dayKeys = new Set<string>();
-    for (const humor of allHumors) {
-      dayKeys.add(toCalendarDateKey(humor.dateTime));
-    }
-    return [...dayKeys];
-  }, [allHumors]);
+  const daysWithHumor = useMemo(() => getDaysWithHumorKeys(allHumors), [allHumors]);
 
   const visibleHumorList = bulkDeleteScope === "all" ? allHumors : humorsForSelectedDay;
   const sortedVisibleHumors = useMemo(
@@ -261,6 +255,7 @@ export const HomePage = () => {
         visible={isDayPickerVisible}
         selectedDay={selectedDay}
         daysWithHumor={daysWithHumor}
+        onDateChange={setSelectedDay}
         onConfirm={(date) => {
           setSelectedDay(date);
           setIsDayPickerVisible(false);

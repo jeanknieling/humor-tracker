@@ -1,26 +1,26 @@
 import Octicons from "@expo/vector-icons/Octicons";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 import { AppTheme } from "../../../themes/Theme";
 import { useTheme } from "../providers/ThemeContext";
 
+const STAR_COUNT = 5;
+
 interface IStarRatingProps {
   rate: number;
-  align?: ViewStyle['justifyContent'];
+  align?: ViewStyle["justifyContent"];
   touchableOpacityDisabled?: boolean;
   onChange?: (rate: number) => void;
-  max?: number;
   size?: number;
-};
+}
 
 export function StarRating({
   rate,
-  align = 'center',
+  align = "center",
   touchableOpacityDisabled = false,
   onChange,
-  max = 5,
-  size = 36,
+  size = 36
 }: IStarRatingProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -31,7 +31,7 @@ export function StarRating({
       gap: !touchableOpacityDisabled ? 8 : 0,
       justifyContent: align }} >
       {
-        Array.from({ length: max }).map((_, index) => {
+        Array.from({ length: STAR_COUNT }).map((_, index) => {
           const starRate = index + 1;
           const filled = starRate <= rate;
 

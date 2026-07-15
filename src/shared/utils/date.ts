@@ -16,7 +16,7 @@ export function isToday(date: Date): boolean {
   return isSameDay(date, new Date());
 }
 
-export function isFutureDay(date: Date): boolean {
+function isFutureDay(date: Date): boolean {
   return startOfDay(date).getTime() > startOfDay(new Date()).getTime();
 }
 
@@ -55,6 +55,15 @@ export function toCalendarDateKey(date: Date | number | string): string {
   const month = String(value.getMonth() + 1).padStart(2, "0");
   const day = String(value.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+/** Chaves `YYYY-MM-DD` dos dias que têm pelo menos um humor. */
+export function getDaysWithHumorKeys(list: Array<{ dateTime: number }>): string[] {
+  const dayKeys = new Set<string>();
+  for (const item of list) {
+    dayKeys.add(toCalendarDateKey(item.dateTime));
+  }
+  return [...dayKeys];
 }
 
 export function buildDateTimeForDay(selectedDayMs?: number): Date {

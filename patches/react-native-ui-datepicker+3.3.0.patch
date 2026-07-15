@@ -111,6 +111,119 @@ index b932bac..c096340 100644
    }
  });
  //# sourceMappingURL=selectors.js.map
+diff --git a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/time-button.js b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/time-button.js
+index 84ef878..f3227b9 100644
+--- a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/time-button.js
++++ b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/time-button.js
+@@ -21,7 +21,8 @@ const TimeButton = () => {
+     styles,
+     classNames,
+     numerals = 'latn',
+-    use12Hours
++    use12Hours,
++    components
+   } = (0, _calendarContext.useCalendarContext)();
+   const {
+     hour,
+@@ -35,8 +36,17 @@ const TimeButton = () => {
+     const minuteLabel = minute < 10 ? `${(0, _utils.formatNumber)(0, numerals)}${(0, _utils.formatNumber)(minute, numerals)}` : `${(0, _utils.formatNumber)(minute, numerals)}`;
+     return `${hourLabel}:${minuteLabel} ${use12Hours ? period : ''}`.trim();
+   }, [numerals, hour, hour12, minute, use12Hours, period]);
++  const isOpen = calendarView === 'time';
++  const handlePress = () => setCalendarView(isOpen ? 'day' : 'time');
++  if (components !== null && components !== void 0 && components.TimeSelector) {
++    return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, components.TimeSelector({
++      text: labelText,
++      isOpen: isOpen,
++      onPress: handlePress
++    }));
++  }
+   return /*#__PURE__*/_react.default.createElement(_reactNative.Pressable, {
+-    onPress: () => setCalendarView(calendarView === 'time' ? 'day' : 'time'),
++    onPress: handlePress,
+     accessibilityRole: "button",
+     accessibilityLabel: (0, _dayjs.default)(date || currentDate).format('HH:mm')
+   }, /*#__PURE__*/_react.default.createElement(_reactNative.View, {
+diff --git a/node_modules/react-native-ui-datepicker/lib/commonjs/datetime-picker.js b/node_modules/react-native-ui-datepicker/lib/commonjs/datetime-picker.js
+index 2d053cd..f558b7c 100644
+--- a/node_modules/react-native-ui-datepicker/lib/commonjs/datetime-picker.js
++++ b/node_modules/react-native-ui-datepicker/lib/commonjs/datetime-picker.js
+@@ -369,37 +369,65 @@ const DateTimePicker = props => {
+     }
+   }, [mode, timePicker, min, max, timeZone]);
+ 
+-  // set the active displayed month
++  // set the active displayed month and keep the selected date in sync
+   const onSelectMonth = (0, _react.useCallback)(value => {
+-    const currentMonth = (0, _dayjs.default)(stateRef.current.currentDate).month();
+-    const newDate = (0, _dayjs.default)(stateRef.current.currentDate).month(value);
++    const baseDate = stateRef.current.date || stateRef.current.currentDate;
++    const currentMonth = (0, _dayjs.default)(baseDate).month();
++    const newDate = (0, _dayjs.default)(baseDate).month(value);
++    const monthChanged = value !== currentMonth;
+ 
+     // Only call onMonthChange if the month actually changed
+-    if (value !== currentMonth) {
++    if (monthChanged) {
+       onMonthChange(value);
+     }
+     dispatch({
+       type: _enums.CalendarActionKind.CHANGE_CURRENT_DATE,
+       payload: newDate
+     });
++    if (monthChanged && mode === 'single' && onChange) {
++      const finalized = timePicker ? _dayjs.default.tz(newDate, timeZone) : _dayjs.default.tz((0, _utils.getStartOfDay)(newDate), timeZone);
++      dispatch({
++        type: _enums.CalendarActionKind.CHANGE_SELECTED_DATE,
++        payload: {
++          date: finalized
++        }
++      });
++      onChange({
++        date: finalized ? (0, _dayjs.default)(finalized).toDate() : finalized
++      });
++    }
+     setCalendarView('day');
+-  }, [setCalendarView, onMonthChange]);
++  }, [setCalendarView, onMonthChange, mode, onChange, timePicker, timeZone]);
+ 
+-  // set the active displayed year
++  // set the active displayed year and keep the selected date in sync
+   const onSelectYear = (0, _react.useCallback)(value => {
+-    const currentYear = (0, _dayjs.default)(stateRef.current.currentDate).year();
+-    const newDate = (0, _dayjs.default)(stateRef.current.currentDate).year(value);
++    const baseDate = stateRef.current.date || stateRef.current.currentDate;
++    const currentYear = (0, _dayjs.default)(baseDate).year();
++    const newDate = (0, _dayjs.default)(baseDate).year(value);
++    const yearChanged = value !== currentYear;
+ 
+     // Only call onYearChange if the year actually changed
+-    if (value !== currentYear) {
++    if (yearChanged) {
+       onYearChange(value);
+     }
+     dispatch({
+       type: _enums.CalendarActionKind.CHANGE_CURRENT_DATE,
+       payload: newDate
+     });
++    if (yearChanged && mode === 'single' && onChange) {
++      const finalized = timePicker ? _dayjs.default.tz(newDate, timeZone) : _dayjs.default.tz((0, _utils.getStartOfDay)(newDate), timeZone);
++      dispatch({
++        type: _enums.CalendarActionKind.CHANGE_SELECTED_DATE,
++        payload: {
++          date: finalized
++        }
++      });
++      onChange({
++        date: finalized ? (0, _dayjs.default)(finalized).toDate() : finalized
++      });
++    }
+     setCalendarView('day');
+-  }, [setCalendarView, onYearChange]);
++  }, [setCalendarView, onYearChange, mode, onChange, timePicker, timeZone]);
+   const onChangeMonth = (0, _react.useCallback)(value => {
+     const newDate = (0, _dayjs.default)(stateRef.current.currentDate).add(value, 'month');
+     dispatch({
 diff --git a/node_modules/react-native-ui-datepicker/lib/module/components/header/next-button.js b/node_modules/react-native-ui-datepicker/lib/module/components/header/next-button.js
 index e181fb4..147b712 100644
 --- a/node_modules/react-native-ui-datepicker/lib/module/components/header/next-button.js
@@ -224,6 +337,161 @@ index 78d34a6..9d702d4 100644
    }
  });
  //# sourceMappingURL=selectors.js.map
+diff --git a/node_modules/react-native-ui-datepicker/lib/module/components/header/time-button.js b/node_modules/react-native-ui-datepicker/lib/module/components/header/time-button.js
+index 8c93ef3..706565a 100644
+--- a/node_modules/react-native-ui-datepicker/lib/module/components/header/time-button.js
++++ b/node_modules/react-native-ui-datepicker/lib/module/components/header/time-button.js
+@@ -13,7 +13,8 @@ export const TimeButton = () => {
+     styles,
+     classNames,
+     numerals = 'latn',
+-    use12Hours
++    use12Hours,
++    components
+   } = useCalendarContext();
+   const {
+     hour,
+@@ -27,8 +28,17 @@ export const TimeButton = () => {
+     const minuteLabel = minute < 10 ? `${formatNumber(0, numerals)}${formatNumber(minute, numerals)}` : `${formatNumber(minute, numerals)}`;
+     return `${hourLabel}:${minuteLabel} ${use12Hours ? period : ''}`.trim();
+   }, [numerals, hour, hour12, minute, use12Hours, period]);
++  const isOpen = calendarView === 'time';
++  const handlePress = () => setCalendarView(isOpen ? 'day' : 'time');
++  if (components !== null && components !== void 0 && components.TimeSelector) {
++    return /*#__PURE__*/React.createElement(React.Fragment, null, components.TimeSelector({
++      text: labelText,
++      isOpen: isOpen,
++      onPress: handlePress
++    }));
++  }
+   return /*#__PURE__*/React.createElement(Pressable, {
+-    onPress: () => setCalendarView(calendarView === 'time' ? 'day' : 'time'),
++    onPress: handlePress,
+     accessibilityRole: "button",
+     accessibilityLabel: dayjs(date || currentDate).format('HH:mm')
+   }, /*#__PURE__*/React.createElement(View, {
+diff --git a/node_modules/react-native-ui-datepicker/lib/module/datetime-picker.js b/node_modules/react-native-ui-datepicker/lib/module/datetime-picker.js
+index 1124c40..069a951 100644
+--- a/node_modules/react-native-ui-datepicker/lib/module/datetime-picker.js
++++ b/node_modules/react-native-ui-datepicker/lib/module/datetime-picker.js
+@@ -361,37 +361,65 @@ const DateTimePicker = props => {
+     }
+   }, [mode, timePicker, min, max, timeZone]);
+ 
+-  // set the active displayed month
++  // set the active displayed month and keep the selected date in sync
+   const onSelectMonth = useCallback(value => {
+-    const currentMonth = dayjs(stateRef.current.currentDate).month();
+-    const newDate = dayjs(stateRef.current.currentDate).month(value);
++    const baseDate = stateRef.current.date || stateRef.current.currentDate;
++    const currentMonth = dayjs(baseDate).month();
++    const newDate = dayjs(baseDate).month(value);
++    const monthChanged = value !== currentMonth;
+ 
+     // Only call onMonthChange if the month actually changed
+-    if (value !== currentMonth) {
++    if (monthChanged) {
+       onMonthChange(value);
+     }
+     dispatch({
+       type: CalendarActionKind.CHANGE_CURRENT_DATE,
+       payload: newDate
+     });
++    if (monthChanged && mode === 'single' && onChange) {
++      const finalized = timePicker ? dayjs.tz(newDate, timeZone) : dayjs.tz(getStartOfDay(newDate), timeZone);
++      dispatch({
++        type: CalendarActionKind.CHANGE_SELECTED_DATE,
++        payload: {
++          date: finalized
++        }
++      });
++      onChange({
++        date: finalized ? dayjs(finalized).toDate() : finalized
++      });
++    }
+     setCalendarView('day');
+-  }, [setCalendarView, onMonthChange]);
++  }, [setCalendarView, onMonthChange, mode, onChange, timePicker, timeZone]);
+ 
+-  // set the active displayed year
++  // set the active displayed year and keep the selected date in sync
+   const onSelectYear = useCallback(value => {
+-    const currentYear = dayjs(stateRef.current.currentDate).year();
+-    const newDate = dayjs(stateRef.current.currentDate).year(value);
++    const baseDate = stateRef.current.date || stateRef.current.currentDate;
++    const currentYear = dayjs(baseDate).year();
++    const newDate = dayjs(baseDate).year(value);
++    const yearChanged = value !== currentYear;
+ 
+     // Only call onYearChange if the year actually changed
+-    if (value !== currentYear) {
++    if (yearChanged) {
+       onYearChange(value);
+     }
+     dispatch({
+       type: CalendarActionKind.CHANGE_CURRENT_DATE,
+       payload: newDate
+     });
++    if (yearChanged && mode === 'single' && onChange) {
++      const finalized = timePicker ? dayjs.tz(newDate, timeZone) : dayjs.tz(getStartOfDay(newDate), timeZone);
++      dispatch({
++        type: CalendarActionKind.CHANGE_SELECTED_DATE,
++        payload: {
++          date: finalized
++        }
++      });
++      onChange({
++        date: finalized ? dayjs(finalized).toDate() : finalized
++      });
++    }
+     setCalendarView('day');
+-  }, [setCalendarView, onYearChange]);
++  }, [setCalendarView, onYearChange, mode, onChange, timePicker, timeZone]);
+   const onChangeMonth = useCallback(value => {
+     const newDate = dayjs(stateRef.current.currentDate).add(value, 'month');
+     dispatch({
+diff --git a/node_modules/react-native-ui-datepicker/lib/typescript/index.d.ts b/node_modules/react-native-ui-datepicker/lib/typescript/index.d.ts
+index 9225ee2..ad976d6 100644
+--- a/node_modules/react-native-ui-datepicker/lib/typescript/index.d.ts
++++ b/node_modules/react-native-ui-datepicker/lib/typescript/index.d.ts
+@@ -1,7 +1,7 @@
+ import './locales';
+ import './polyfill';
+ import DateTimePicker from './datetime-picker';
+-export type { DateType, CalendarMode, CalendarDay, CalendarWeek, CalendarMonth, CalendarYear, CalendarComponents, CalendarMonthSelectorProps, CalendarYearSelectorProps, DatePickerBaseProps, } from './types';
++export type { DateType, CalendarMode, CalendarDay, CalendarWeek, CalendarMonth, CalendarYear, CalendarComponents, CalendarMonthSelectorProps, CalendarYearSelectorProps, CalendarTimeSelectorProps, DatePickerBaseProps, } from './types';
+ export { useDefaultClassNames, useDefaultStyles } from './theme';
+ export default DateTimePicker;
+ //# sourceMappingURL=index.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-ui-datepicker/lib/typescript/types.d.ts b/node_modules/react-native-ui-datepicker/lib/typescript/types.d.ts
+index b6cb974..8c9246c 100644
+--- a/node_modules/react-native-ui-datepicker/lib/typescript/types.d.ts
++++ b/node_modules/react-native-ui-datepicker/lib/typescript/types.d.ts
+@@ -99,6 +99,14 @@ export type CalendarYearSelectorProps = {
+     /** Toggles the year-picker view */
+     onPress: () => void;
+ };
++export type CalendarTimeSelectorProps = {
++    /** The formatted time label shown in the header (e.g. "14:30") */
++    text: string;
++    /** Whether the time-picker view is currently open */
++    isOpen: boolean;
++    /** Toggles the time-picker view */
++    onPress: () => void;
++};
+ export type CalendarComponents = Partial<{
+     /** The component containing the day in the days grid */
+     Day: (day: CalendarDay) => React.ReactNode;
+@@ -116,6 +124,8 @@ export type CalendarComponents = Partial<{
+     MonthSelector: (props: CalendarMonthSelectorProps) => React.ReactNode;
+     /** Fully replaces the year selector button in the header */
+     YearSelector: (props: CalendarYearSelectorProps) => React.ReactNode;
++    /** Fully replaces the time selector button in the header */
++    TimeSelector: (props: CalendarTimeSelectorProps) => React.ReactNode;
+ }>;
+ export interface DatePickerBaseProps {
+     mode?: CalendarMode;
 diff --git a/node_modules/react-native-ui-datepicker/src/components/header/index.tsx b/node_modules/react-native-ui-datepicker/src/components/header/index.tsx
 index 21cc77c..5a0fec4 100644
 --- a/node_modules/react-native-ui-datepicker/src/components/header/index.tsx
@@ -364,3 +632,177 @@ index dc6f789..4ae4522 100644
 -    alignItems: 'center',
 -  },
  });
+diff --git a/node_modules/react-native-ui-datepicker/src/components/header/time-button.tsx b/node_modules/react-native-ui-datepicker/src/components/header/time-button.tsx
+index 850eb3f..5b0343e 100644
+--- a/node_modules/react-native-ui-datepicker/src/components/header/time-button.tsx
++++ b/node_modules/react-native-ui-datepicker/src/components/header/time-button.tsx
+@@ -15,6 +15,7 @@ export const TimeButton = () => {
+     classNames,
+     numerals = 'latn',
+     use12Hours,
++    components,
+   } = useCalendarContext();
+ 
+   const { hour, hour12, minute, period } = useMemo(
+@@ -38,9 +39,24 @@ export const TimeButton = () => {
+     return `${hourLabel}:${minuteLabel} ${use12Hours ? period : ''}`.trim();
+   }, [numerals, hour, hour12, minute, use12Hours, period]);
+ 
++  const isOpen = calendarView === 'time';
++  const handlePress = () => setCalendarView(isOpen ? 'day' : 'time');
++
++  if (components?.TimeSelector) {
++    return (
++      <>
++        {components.TimeSelector({
++          text: labelText,
++          isOpen,
++          onPress: handlePress,
++        })}
++      </>
++    );
++  }
++
+   return (
+     <Pressable
+-      onPress={() => setCalendarView(calendarView === 'time' ? 'day' : 'time')}
++      onPress={handlePress}
+       accessibilityRole="button"
+       accessibilityLabel={dayjs(date || currentDate).format('HH:mm')}
+     >
+diff --git a/node_modules/react-native-ui-datepicker/src/datetime-picker.tsx b/node_modules/react-native-ui-datepicker/src/datetime-picker.tsx
+index 6dc6d66..860b306 100644
+--- a/node_modules/react-native-ui-datepicker/src/datetime-picker.tsx
++++ b/node_modules/react-native-ui-datepicker/src/datetime-picker.tsx
+@@ -542,14 +542,16 @@ const DateTimePicker = (
+     [mode, timePicker, min, max, timeZone]
+   );
+ 
+-  // set the active displayed month
++  // set the active displayed month and keep the selected date in sync
+   const onSelectMonth = useCallback(
+     (value: number) => {
+-      const currentMonth = dayjs(stateRef.current.currentDate).month();
+-      const newDate = dayjs(stateRef.current.currentDate).month(value);
++      const baseDate = stateRef.current.date || stateRef.current.currentDate;
++      const currentMonth = dayjs(baseDate).month();
++      const newDate = dayjs(baseDate).month(value);
++      const monthChanged = value !== currentMonth;
+ 
+       // Only call onMonthChange if the month actually changed
+-      if (value !== currentMonth) {
++      if (monthChanged) {
+         onMonthChange(value);
+       }
+ 
+@@ -557,19 +559,37 @@ const DateTimePicker = (
+         type: CalendarActionKind.CHANGE_CURRENT_DATE,
+         payload: newDate,
+       });
++
++      if (monthChanged && mode === 'single' && onChange) {
++        const finalized = timePicker
++          ? dayjs.tz(newDate, timeZone)
++          : dayjs.tz(getStartOfDay(newDate), timeZone);
++
++        dispatch({
++          type: CalendarActionKind.CHANGE_SELECTED_DATE,
++          payload: { date: finalized },
++        });
++
++        (onChange as SingleChange)({
++          date: finalized ? dayjs(finalized).toDate() : finalized,
++        });
++      }
++
+       setCalendarView('day');
+     },
+-    [setCalendarView, onMonthChange]
++    [setCalendarView, onMonthChange, mode, onChange, timePicker, timeZone]
+   );
+ 
+-  // set the active displayed year
++  // set the active displayed year and keep the selected date in sync
+   const onSelectYear = useCallback(
+     (value: number) => {
+-      const currentYear = dayjs(stateRef.current.currentDate).year();
+-      const newDate = dayjs(stateRef.current.currentDate).year(value);
++      const baseDate = stateRef.current.date || stateRef.current.currentDate;
++      const currentYear = dayjs(baseDate).year();
++      const newDate = dayjs(baseDate).year(value);
++      const yearChanged = value !== currentYear;
+ 
+       // Only call onYearChange if the year actually changed
+-      if (value !== currentYear) {
++      if (yearChanged) {
+         onYearChange(value);
+       }
+ 
+@@ -577,9 +597,25 @@ const DateTimePicker = (
+         type: CalendarActionKind.CHANGE_CURRENT_DATE,
+         payload: newDate,
+       });
++
++      if (yearChanged && mode === 'single' && onChange) {
++        const finalized = timePicker
++          ? dayjs.tz(newDate, timeZone)
++          : dayjs.tz(getStartOfDay(newDate), timeZone);
++
++        dispatch({
++          type: CalendarActionKind.CHANGE_SELECTED_DATE,
++          payload: { date: finalized },
++        });
++
++        (onChange as SingleChange)({
++          date: finalized ? dayjs(finalized).toDate() : finalized,
++        });
++      }
++
+       setCalendarView('day');
+     },
+-    [setCalendarView, onYearChange]
++    [setCalendarView, onYearChange, mode, onChange, timePicker, timeZone]
+   );
+ 
+   const onChangeMonth = useCallback(
+diff --git a/node_modules/react-native-ui-datepicker/src/index.ts b/node_modules/react-native-ui-datepicker/src/index.ts
+index da2a104..eb99f65 100644
+--- a/node_modules/react-native-ui-datepicker/src/index.ts
++++ b/node_modules/react-native-ui-datepicker/src/index.ts
+@@ -12,6 +12,7 @@ export type {
+   CalendarComponents,
+   CalendarMonthSelectorProps,
+   CalendarYearSelectorProps,
++  CalendarTimeSelectorProps,
+   DatePickerBaseProps,
+ } from './types';
+ export { useDefaultClassNames, useDefaultStyles } from './theme';
+diff --git a/node_modules/react-native-ui-datepicker/src/types.ts b/node_modules/react-native-ui-datepicker/src/types.ts
+index 1fc1a31..f8d7277 100644
+--- a/node_modules/react-native-ui-datepicker/src/types.ts
++++ b/node_modules/react-native-ui-datepicker/src/types.ts
+@@ -136,6 +136,15 @@ export type CalendarYearSelectorProps = {
+   onPress: () => void;
+ };
+ 
++export type CalendarTimeSelectorProps = {
++  /** The formatted time label shown in the header (e.g. "14:30") */
++  text: string;
++  /** Whether the time-picker view is currently open */
++  isOpen: boolean;
++  /** Toggles the time-picker view */
++  onPress: () => void;
++};
++
+ export type CalendarComponents = Partial<{
+   /** The component containing the day in the days grid */
+   Day: (day: CalendarDay) => React.ReactNode;
+@@ -153,6 +162,8 @@ export type CalendarComponents = Partial<{
+   MonthSelector: (props: CalendarMonthSelectorProps) => React.ReactNode;
+   /** Fully replaces the year selector button in the header */
+   YearSelector: (props: CalendarYearSelectorProps) => React.ReactNode;
++  /** Fully replaces the time selector button in the header */
++  TimeSelector: (props: CalendarTimeSelectorProps) => React.ReactNode;
+ }>;
+ 
+ export interface DatePickerBaseProps {

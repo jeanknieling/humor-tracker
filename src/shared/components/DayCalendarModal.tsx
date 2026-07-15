@@ -1,9 +1,11 @@
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker, {
   CalendarDay,
+  CalendarMonthSelectorProps,
+  CalendarTimeSelectorProps,
   CalendarYearSelectorProps,
   DateType,
   useDefaultStyles
@@ -16,11 +18,14 @@ import { Button } from "./Button";
 
 dayjs.locale("pt-br");
 
+type PickerFocus = "day" | "month" | "year" | "time";
+
 type DayCalendarModalProps = {
   visible: boolean;
   selectedDay: Date;
   daysWithHumor: string[];
   withTime?: boolean;
+  onDateChange?: (date: Date) => void;
   onConfirm: (date: Date) => void;
   onCancel: () => void;
 };
@@ -31,11 +36,44 @@ function toJsDate(value: DateType): Date | null {
   return parsed.isValid() ? parsed.toDate() : null;
 }
 
+function SyncPickerFocus({
+  view,
+  isOpen,
+  onFocusChange
+}: {
+  view: Exclude<PickerFocus, "day">;
+  isOpen: boolean;
+  onFocusChange: (updater: (current: PickerFocus) => PickerFocus) => void;
+}) {
+  useEffect(() => {
+    onFocusChange((current) => {
+      if (isOpen) return view;
+      return current === view ? "day" : current;
+    });
+  }, [isOpen, view, onFocusChange]);
+
+  return null;
+}
+
+function getPickerTitle(withTime: boolean, focus: PickerFocus): string {
+  switch (focus) {
+    case "month":
+      return "Escolher mês";
+    case "year":
+      return "Escolher ano";
+    case "time":
+      return "Escolher hora";
+    default:
+      return "Escolher dia";
+  }
+}
+
 export function DayCalendarModal({
   visible,
   selectedDay,
   daysWithHumor,
   withTime = false,
+  onDateChange,
   onConfirm,
   onCancel
 }: DayCalendarModalProps) {
@@ -43,15 +81,22 @@ export function DayCalendarModal({
   const defaultStyles = useDefaultStyles(isDark ? "dark" : "light");
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [draftDateTime, setDraftDateTime] = useState(selectedDay);
+  const [pickerFocus, setPickerFocus] = useState<PickerFocus>("day");
+  const draftDateTimeRef = useRef(draftDateTime);
+  const dateChangeSourceRef = useRef<"month" | "year" | null>(null);
+  draftDateTimeRef.current = draftDateTime;
 
   const daysWithHumorSet = useMemo(() => new Set(daysWithHumor), [daysWithHumor]);
 
   useEffect(() => {
     if (visible) {
       setDraftDateTime(selectedDay);
+      draftDateTimeRef.current = selectedDay;
+      setPickerFocus("day");
     }
   }, [visible, selectedDay]);
 
+  const pickerTitle = getPickerTitle(withTime, pickerFocus);
   const pickerStyles = useMemo(
     () => ({
       ...defaultStyles,
@@ -170,76 +215,156 @@ export function DayCalendarModal({
     [defaultStyles, theme]
   );
 
-  const renderDay = (day: CalendarDay) => {
-    const dayKey = toCalendarDateKey(day.date);
-    const hasHumor = daysWithHumorSet.has(dayKey);
-    const labelColor = day.isSelected
-      ? theme.colors.primaryText
-      : day.isToday
-        ? theme.colors.primary
-        : day.isCurrentMonth
-          ? theme.colors.text
-          : theme.colors.textPlaceholder;
+  const renderDay = useCallback(
+    (day: CalendarDay) => {
+      const dayKey = toCalendarDateKey(day.date);
+      const hasHumor = daysWithHumorSet.has(dayKey);
+      const labelColor = day.isSelected
+        ? theme.colors.primaryText
+        : day.isToday
+          ? theme.colors.primary
+          : day.isCurrentMonth
+            ? theme.colors.text
+            : theme.colors.textPlaceholder;
 
-    return (
-      <View
-        style={styles.dayContent}
-        pointerEvents="none"
-      >
-        <Text
-          style={[
-            styles.dayText,
-            { color: labelColor },
-            (day.isSelected || day.isToday) && styles.dayTextBold
-          ]}
+      return (
+        <View
+          style={styles.dayContent}
+          pointerEvents="none"
         >
-          {day.text}
-        </Text>
-        {hasHumor ? (
-          <View
+          <Text
             style={[
-              styles.humorDot,
-              {
-                backgroundColor: day.isSelected ? theme.colors.primaryText : theme.colors.primary
-              }
+              styles.dayText,
+              { color: labelColor },
+              (day.isSelected || day.isToday) && styles.dayTextBold
             ]}
-          />
-        ) : (
-          <View style={styles.humorDotPlaceholder} />
-        )}
-      </View>
-    );
-  };
-
-  const renderYearSelector = ({
-    year,
-    yearRange,
-    isOpen,
-    onPress
-  }: CalendarYearSelectorProps) => (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={isOpen ? yearRange : year}
-    >
-      <Text style={pickerStyles.year_selector_label}>{isOpen ? yearRange : year}</Text>
-    </Pressable>
+          >
+            {day.text}
+          </Text>
+          {hasHumor ? (
+            <View
+              style={[
+                styles.humorDot,
+                {
+                  backgroundColor: day.isSelected ? theme.colors.primaryText : theme.colors.primary
+                }
+              ]}
+            />
+          ) : (
+            <View style={styles.humorDotPlaceholder} />
+          )}
+        </View>
+      );
+    },
+    [daysWithHumorSet, styles, theme]
   );
 
-  const handleChange = ({ date }: { date: DateType }) => {
-    const nextDate = toJsDate(date);
-    if (!nextDate) return;
+  const renderMonthSelector = useCallback(
+    ({ text, isOpen, onPress }: CalendarMonthSelectorProps) => (
+      <>
+        <SyncPickerFocus
+          view="month"
+          isOpen={isOpen}
+          onFocusChange={setPickerFocus}
+        />
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={text}
+        >
+          <Text style={pickerStyles.month_selector_label}>{text}</Text>
+        </Pressable>
+      </>
+    ),
+    [pickerStyles.month_selector_label]
+  );
 
-    setDraftDateTime((current) => {
-      if (current.getTime() === nextDate.getTime()) return current;
-      return nextDate;
-    });
+  const renderYearSelector = useCallback(
+    ({ year, yearRange, isOpen, onPress }: CalendarYearSelectorProps) => (
+      <>
+        <SyncPickerFocus
+          view="year"
+          isOpen={isOpen}
+          onFocusChange={setPickerFocus}
+        />
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={isOpen ? yearRange : year}
+        >
+          <Text style={pickerStyles.year_selector_label}>{isOpen ? yearRange : year}</Text>
+        </Pressable>
+      </>
+    ),
+    [pickerStyles.year_selector_label]
+  );
 
-    if (!withTime) {
-      onConfirm(startOfDay(nextDate));
-    }
-  };
+  const renderTimeSelector = useCallback(
+    ({ text, isOpen, onPress }: CalendarTimeSelectorProps) => (
+      <>
+        <SyncPickerFocus
+          view="time"
+          isOpen={isOpen}
+          onFocusChange={setPickerFocus}
+        />
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={text}
+        >
+          <Text style={pickerStyles.time_selector_label}>{text}</Text>
+        </Pressable>
+      </>
+    ),
+    [pickerStyles.time_selector_label]
+  );
 
+  const pickerComponents = useMemo(
+    () => ({
+      Day: renderDay,
+      MonthSelector: renderMonthSelector,
+      YearSelector: renderYearSelector,
+      TimeSelector: renderTimeSelector
+    }),
+    [renderDay, renderMonthSelector, renderYearSelector, renderTimeSelector]
+  );
+
+  const handleChange = useCallback(
+    ({ date }: { date: DateType }) => {
+      const nextDate = toJsDate(date);
+      if (!nextDate) return;
+
+      const changeSource = dateChangeSourceRef.current;
+      dateChangeSourceRef.current = null;
+
+      const current = draftDateTimeRef.current;
+      if (current.getTime() !== nextDate.getTime()) {
+        draftDateTimeRef.current = nextDate;
+        setDraftDateTime(nextDate);
+      }
+
+      const committedDate = withTime ? nextDate : startOfDay(nextDate);
+
+      // Mês/ano atualizam a data global e mantêm o modal aberto.
+      if (changeSource === "month" || changeSource === "year") {
+        onDateChange?.(committedDate);
+        return;
+      }
+
+      if (!withTime) {
+        onConfirm(committedDate);
+      }
+    },
+    [onConfirm, onDateChange, withTime]
+  );
+
+  const handleMonthChange = useCallback(() => {
+    dateChangeSourceRef.current = "month";
+  }, []);
+
+  const handleYearChange = useCallback(() => {
+    dateChangeSourceRef.current = "year";
+  }, []);
   return (
     <Modal
       visible={visible}
@@ -255,13 +380,15 @@ export function DayCalendarModal({
         />
 
         <View style={styles.sheet}>
-          <Text style={styles.title}>{withTime ? "Escolher data e hora" : "Escolher dia"}</Text>
+          <Text style={styles.title}>{pickerTitle}</Text>
 
           <View>
             <DateTimePicker
               mode="single"
               date={draftDateTime}
               onChange={handleChange}
+              onMonthChange={handleMonthChange}
+              onYearChange={handleYearChange}
               locale="pt-br"
               timePicker={withTime}
               use12Hours={false}
@@ -269,10 +396,7 @@ export function DayCalendarModal({
               containerHeight={280}
               styles={pickerStyles}
               weekdaysFormat="short"
-              components={{
-                Day: renderDay,
-                YearSelector: renderYearSelector
-              }}
+              components={pickerComponents}
             />
           </View>
 

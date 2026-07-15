@@ -33,14 +33,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const setThemeMode = useCallback((nextMode: ThemeMode) => {
-    setMode(nextMode);
-    AsyncStorage.setItem(THEME_STORAGE_KEY, nextMode).catch(() => undefined);
-  }, []);
-
   const toggleTheme = useCallback(() => {
-    setThemeMode(mode === "dark" ? "light" : "dark");
-  }, [mode, setThemeMode]);
+    setMode((current) => {
+      const nextMode = current === "dark" ? "light" : "dark";
+      AsyncStorage.setItem(THEME_STORAGE_KEY, nextMode).catch(() => undefined);
+      return nextMode;
+    });
+  }, []);
 
   const theme = useMemo(() => getTheme(mode), [mode]);
 

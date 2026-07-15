@@ -19,9 +19,9 @@ import {
   buildDateTimeForDay,
   formatDateTimeLabel,
   formatHumorQuestion,
+  getDaysWithHumorKeys,
   isSameDay,
-  startOfDay,
-  toCalendarDateKey
+  startOfDay
 } from "./../shared/utils/date";
 
 export const DetailPage = () => {
@@ -127,11 +127,7 @@ export const DetailPage = () => {
 
   useEffect(() => {
     loadHumorList().then((humorList) => {
-      const dayKeys = new Set<string>();
-      for (const humor of humorList) {
-        dayKeys.add(toCalendarDateKey(humor.dateTime));
-      }
-      setDaysWithHumor([...dayKeys]);
+      setDaysWithHumor(getDaysWithHumorKeys(humorList));
 
       if (!params.id) return;
 
@@ -177,6 +173,10 @@ export const DetailPage = () => {
         selectedDay={dateTime}
         daysWithHumor={daysWithHumor}
         withTime
+        onDateChange={(nextDateTime) => {
+          setDateTime(nextDateTime);
+          setSelectedDay(nextDateTime);
+        }}
         onConfirm={(nextDateTime) => {
           setDateTime(nextDateTime);
           setSelectedDay(nextDateTime);
