@@ -17,7 +17,6 @@ const THEME_STORAGE_KEY = "theme-mode";
 type ThemeContextValue = {
   theme: AppTheme;
   isDark: boolean;
-  setThemeMode: (mode: ThemeMode) => void;
   toggleTheme: () => void;
 };
 
@@ -49,10 +48,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({
       theme,
       isDark: mode === "dark",
-      setThemeMode,
       toggleTheme
     }),
-    [theme, mode, setThemeMode, toggleTheme]
+    [theme, mode, toggleTheme]
   );
 
   return (

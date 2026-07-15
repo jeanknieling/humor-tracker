@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import 'react-native-get-random-values';
 
 import { AppRouters } from './Routes';
-import { ThemeProvider } from './shared/theme/ThemeContext';
+import { AppProviders } from './shared/providers/AppProviders';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -26,8 +26,8 @@ export const App = () => {
   }
 
   return (
-    <ThemeProvider>
+    <AppProviders>
       <AppRouters />
-    </ThemeProvider>
+    </AppProviders>
   );
 }

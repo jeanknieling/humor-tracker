@@ -77,5 +77,3 @@ export function getTheme(mode: ThemeMode): AppTheme {
     shadows
   };
 }
-
-export const theme = getTheme("light");

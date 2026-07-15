@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppTheme } from "../../../themes/Theme";
-import { useTheme } from "../theme/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 interface IFooterProps {
   isFocused: boolean;

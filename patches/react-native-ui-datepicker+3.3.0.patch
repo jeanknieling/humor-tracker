@@ -1,0 +1,366 @@
+diff --git a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/next-button.js b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/next-button.js
+index a525b4a..6f3251d 100644
+--- a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/next-button.js
++++ b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/next-button.js
+@@ -30,6 +30,7 @@ const NextButton = ({
+   const colorScheme = (0, _reactNative.useColorScheme)();
+   const theme = colorScheme ?? 'light';
+   const defaultStyles = (0, _react.useMemo)(() => createDefaultStyles(isRTL), [isRTL]);
++  const disabled = calendarView === 'month' || calendarView === 'time';
+   const onPress = (0, _react.useCallback)(() => {
+     switch (calendarView) {
+       case 'day':
+@@ -45,14 +46,18 @@ const NextButton = ({
+   const iconStyle = (0, _react.useMemo)(() => ({
+     ...defaultStyles.icon,
+     tintColor: _theme.COLORS[theme].foreground,
+-    ...imageStyle
+-  }), [imageStyle, theme, defaultStyles.icon]);
++    ...imageStyle,
++    opacity: disabled ? 0.35 : 1
++  }), [imageStyle, theme, defaultStyles.icon, disabled]);
+   return /*#__PURE__*/_react.default.createElement(_reactNative.Pressable, {
+-    disabled: calendarView === 'time',
++    disabled: disabled,
+     onPress: onPress,
+     testID: "btn-next",
+     accessibilityRole: "button",
+-    accessibilityLabel: "Next"
++    accessibilityLabel: "Next",
++    accessibilityState: {
++      disabled
++    }
+   }, /*#__PURE__*/_react.default.createElement(_reactNative.View, {
+     style: [defaultStyles.iconContainer, defaultStyles.next, style],
+     className: className
+diff --git a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/prev-button.js b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/prev-button.js
+index 68abb02..3bb4f83 100644
+--- a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/prev-button.js
++++ b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/prev-button.js
+@@ -30,6 +30,7 @@ const PrevButton = ({
+   const colorScheme = (0, _reactNative.useColorScheme)();
+   const theme = colorScheme ?? 'light';
+   const defaultStyles = (0, _react.useMemo)(() => createDefaultStyles(isRTL), [isRTL]);
++  const disabled = calendarView === 'month' || calendarView === 'time';
+   const onPress = (0, _react.useCallback)(() => {
+     switch (calendarView) {
+       case 'day':
+@@ -45,14 +46,18 @@ const PrevButton = ({
+   const iconStyle = (0, _react.useMemo)(() => ({
+     ...defaultStyles.icon,
+     tintColor: _theme.COLORS[theme].foreground,
+-    ...imageStyle
+-  }), [imageStyle, theme, defaultStyles.icon]);
++    ...imageStyle,
++    opacity: disabled ? 0.35 : 1
++  }), [imageStyle, theme, defaultStyles.icon, disabled]);
+   return /*#__PURE__*/_react.default.createElement(_reactNative.Pressable, {
+-    disabled: calendarView === 'time',
++    disabled: disabled,
+     onPress: onPress,
+     testID: "btn-prev",
+     accessibilityRole: "button",
+-    accessibilityLabel: "Prev"
++    accessibilityLabel: "Prev",
++    accessibilityState: {
++      disabled
++    }
+   }, /*#__PURE__*/_react.default.createElement(_reactNative.View, {
+     style: [defaultStyles.iconContainer, defaultStyles.prev, style],
+     className: className
+diff --git a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/selectors.js b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/selectors.js
+index b932bac..c096340 100644
+--- a/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/selectors.js
++++ b/node_modules/react-native-ui-datepicker/lib/commonjs/components/header/selectors.js
+@@ -19,10 +19,12 @@ const Selectors = ({
+   const {
+     mode,
+     calendarView,
+-    timePicker,
+-    showMonthSelector
++    timePicker
+   } = (0, _calendarContext.useCalendarContext)();
+-  const showMonth = showMonthSelector === true || showMonthSelector !== false && calendarView !== 'year';
++  const showTime = Boolean(timePicker && mode === 'single');
++  const showMonth = calendarView === 'day' || calendarView === 'month';
++  const showYear = calendarView === 'day' || calendarView === 'year';
++  const showTimeButton = showTime && (calendarView === 'day' || calendarView === 'time');
+   return /*#__PURE__*/_react.default.createElement(_reactNative.View, {
+     style: [defaultStyles.container,
+     // eslint-disable-next-line react-native/no-inline-styles
+@@ -32,9 +34,7 @@ const Selectors = ({
+       justifyContent: 'space-between',
+       flexDirection: position === 'left' ? 'row-reverse' : 'row'
+     }]
+-  }, /*#__PURE__*/_react.default.createElement(_reactNative.View, {
+-    style: defaultStyles.monthAndYear
+-  }, showMonth && /*#__PURE__*/_react.default.createElement(_monthButton.default, null), /*#__PURE__*/_react.default.createElement(_yearButton.default, null)), timePicker && mode === 'single' && calendarView !== 'year' ? /*#__PURE__*/_react.default.createElement(_timeButton.TimeButton, null) : null);
++  }, showMonth ? /*#__PURE__*/_react.default.createElement(_monthButton.default, null) : null, showYear ? /*#__PURE__*/_react.default.createElement(_yearButton.default, null) : null, showTimeButton ? /*#__PURE__*/_react.default.createElement(_timeButton.TimeButton, null) : null);
+ };
+ var _default = exports.default = /*#__PURE__*/(0, _react.memo)(Selectors);
+ const defaultStyles = _reactNative.StyleSheet.create({
+@@ -42,11 +42,6 @@ const defaultStyles = _reactNative.StyleSheet.create({
+     flex: 1,
+     flexDirection: 'row',
+     alignItems: 'center'
+-  },
+-  monthAndYear: {
+-    gap: 5,
+-    flexDirection: 'row',
+-    alignItems: 'center'
+   }
+ });
+ //# sourceMappingURL=selectors.js.map
+diff --git a/node_modules/react-native-ui-datepicker/lib/module/components/header/next-button.js b/node_modules/react-native-ui-datepicker/lib/module/components/header/next-button.js
+index e181fb4..147b712 100644
+--- a/node_modules/react-native-ui-datepicker/lib/module/components/header/next-button.js
++++ b/node_modules/react-native-ui-datepicker/lib/module/components/header/next-button.js
+@@ -22,6 +22,7 @@ const NextButton = ({
+   const colorScheme = useColorScheme();
+   const theme = colorScheme ?? 'light';
+   const defaultStyles = useMemo(() => createDefaultStyles(isRTL), [isRTL]);
++  const disabled = calendarView === 'month' || calendarView === 'time';
+   const onPress = useCallback(() => {
+     switch (calendarView) {
+       case 'day':
+@@ -37,14 +38,18 @@ const NextButton = ({
+   const iconStyle = useMemo(() => ({
+     ...defaultStyles.icon,
+     tintColor: COLORS[theme].foreground,
+-    ...imageStyle
+-  }), [imageStyle, theme, defaultStyles.icon]);
++    ...imageStyle,
++    opacity: disabled ? 0.35 : 1
++  }), [imageStyle, theme, defaultStyles.icon, disabled]);
+   return /*#__PURE__*/React.createElement(Pressable, {
+-    disabled: calendarView === 'time',
++    disabled: disabled,
+     onPress: onPress,
+     testID: "btn-next",
+     accessibilityRole: "button",
+-    accessibilityLabel: "Next"
++    accessibilityLabel: "Next",
++    accessibilityState: {
++      disabled
++    }
+   }, /*#__PURE__*/React.createElement(View, {
+     style: [defaultStyles.iconContainer, defaultStyles.next, style],
+     className: className
+diff --git a/node_modules/react-native-ui-datepicker/lib/module/components/header/prev-button.js b/node_modules/react-native-ui-datepicker/lib/module/components/header/prev-button.js
+index 6877602..777bf7c 100644
+--- a/node_modules/react-native-ui-datepicker/lib/module/components/header/prev-button.js
++++ b/node_modules/react-native-ui-datepicker/lib/module/components/header/prev-button.js
+@@ -22,6 +22,7 @@ const PrevButton = ({
+   const colorScheme = useColorScheme();
+   const theme = colorScheme ?? 'light';
+   const defaultStyles = useMemo(() => createDefaultStyles(isRTL), [isRTL]);
++  const disabled = calendarView === 'month' || calendarView === 'time';
+   const onPress = useCallback(() => {
+     switch (calendarView) {
+       case 'day':
+@@ -37,14 +38,18 @@ const PrevButton = ({
+   const iconStyle = useMemo(() => ({
+     ...defaultStyles.icon,
+     tintColor: COLORS[theme].foreground,
+-    ...imageStyle
+-  }), [imageStyle, theme, defaultStyles.icon]);
++    ...imageStyle,
++    opacity: disabled ? 0.35 : 1
++  }), [imageStyle, theme, defaultStyles.icon, disabled]);
+   return /*#__PURE__*/React.createElement(Pressable, {
+-    disabled: calendarView === 'time',
++    disabled: disabled,
+     onPress: onPress,
+     testID: "btn-prev",
+     accessibilityRole: "button",
+-    accessibilityLabel: "Prev"
++    accessibilityLabel: "Prev",
++    accessibilityState: {
++      disabled
++    }
+   }, /*#__PURE__*/React.createElement(View, {
+     style: [defaultStyles.iconContainer, defaultStyles.prev, style],
+     className: className
+diff --git a/node_modules/react-native-ui-datepicker/lib/module/components/header/selectors.js b/node_modules/react-native-ui-datepicker/lib/module/components/header/selectors.js
+index 78d34a6..9d702d4 100644
+--- a/node_modules/react-native-ui-datepicker/lib/module/components/header/selectors.js
++++ b/node_modules/react-native-ui-datepicker/lib/module/components/header/selectors.js
+@@ -10,10 +10,12 @@ const Selectors = ({
+   const {
+     mode,
+     calendarView,
+-    timePicker,
+-    showMonthSelector
++    timePicker
+   } = useCalendarContext();
+-  const showMonth = showMonthSelector === true || showMonthSelector !== false && calendarView !== 'year';
++  const showTime = Boolean(timePicker && mode === 'single');
++  const showMonth = calendarView === 'day' || calendarView === 'month';
++  const showYear = calendarView === 'day' || calendarView === 'year';
++  const showTimeButton = showTime && (calendarView === 'day' || calendarView === 'time');
+   return /*#__PURE__*/React.createElement(View, {
+     style: [defaultStyles.container,
+     // eslint-disable-next-line react-native/no-inline-styles
+@@ -23,9 +25,7 @@ const Selectors = ({
+       justifyContent: 'space-between',
+       flexDirection: position === 'left' ? 'row-reverse' : 'row'
+     }]
+-  }, /*#__PURE__*/React.createElement(View, {
+-    style: defaultStyles.monthAndYear
+-  }, showMonth && /*#__PURE__*/React.createElement(MonthButton, null), /*#__PURE__*/React.createElement(YearButton, null)), timePicker && mode === 'single' && calendarView !== 'year' ? /*#__PURE__*/React.createElement(TimeButton, null) : null);
++  }, showMonth ? /*#__PURE__*/React.createElement(MonthButton, null) : null, showYear ? /*#__PURE__*/React.createElement(YearButton, null) : null, showTimeButton ? /*#__PURE__*/React.createElement(TimeButton, null) : null);
+ };
+ export default /*#__PURE__*/memo(Selectors);
+ const defaultStyles = StyleSheet.create({
+@@ -33,11 +33,6 @@ const defaultStyles = StyleSheet.create({
+     flex: 1,
+     flexDirection: 'row',
+     alignItems: 'center'
+-  },
+-  monthAndYear: {
+-    gap: 5,
+-    flexDirection: 'row',
+-    alignItems: 'center'
+   }
+ });
+ //# sourceMappingURL=selectors.js.map
+diff --git a/node_modules/react-native-ui-datepicker/src/components/header/index.tsx b/node_modules/react-native-ui-datepicker/src/components/header/index.tsx
+index 21cc77c..5a0fec4 100644
+--- a/node_modules/react-native-ui-datepicker/src/components/header/index.tsx
++++ b/node_modules/react-native-ui-datepicker/src/components/header/index.tsx
+@@ -1,10 +1,10 @@
+-import React, { memo, useMemo } from 'react';
+-import { View, StyleSheet } from 'react-native';
+-import type { HeaderProps, NavigationProps } from './types';
+-import PrevButton from './prev-button';
++import { isEqual } from 'lodash';
++import { memo, useMemo } from 'react';
++import { StyleSheet, View } from 'react-native';
+ import NextButton from './next-button';
++import PrevButton from './prev-button';
+ import Selectors from './selectors';
+-import { isEqual } from 'lodash';
++import type { HeaderProps, NavigationProps } from './types';
+ 
+ const createDefaultStyles = (isRTL: boolean) =>
+   StyleSheet.create({
+diff --git a/node_modules/react-native-ui-datepicker/src/components/header/next-button.tsx b/node_modules/react-native-ui-datepicker/src/components/header/next-button.tsx
+index bc36f13..414201e 100644
+--- a/node_modules/react-native-ui-datepicker/src/components/header/next-button.tsx
++++ b/node_modules/react-native-ui-datepicker/src/components/header/next-button.tsx
+@@ -42,6 +42,8 @@ const NextButton = ({
+   const theme = colorScheme ?? 'light';
+   const defaultStyles = useMemo(() => createDefaultStyles(isRTL), [isRTL]);
+ 
++  const disabled = calendarView === 'month' || calendarView === 'time';
++
+   const onPress = useCallback(() => {
+     switch (calendarView) {
+       case 'day':
+@@ -60,17 +62,19 @@ const NextButton = ({
+       ...defaultStyles.icon,
+       tintColor: COLORS[theme].foreground,
+       ...(imageStyle as ImageStyle),
++      opacity: disabled ? 0.35 : 1,
+     }),
+-    [imageStyle, theme, defaultStyles.icon]
++    [imageStyle, theme, defaultStyles.icon, disabled]
+   );
+ 
+   return (
+     <Pressable
+-      disabled={calendarView === 'time'}
++      disabled={disabled}
+       onPress={onPress}
+       testID="btn-next"
+       accessibilityRole="button"
+       accessibilityLabel="Next"
++      accessibilityState={{ disabled }}
+     >
+       <View
+         style={[defaultStyles.iconContainer, defaultStyles.next, style]}
+diff --git a/node_modules/react-native-ui-datepicker/src/components/header/prev-button.tsx b/node_modules/react-native-ui-datepicker/src/components/header/prev-button.tsx
+index 34475ac..6c798b4 100644
+--- a/node_modules/react-native-ui-datepicker/src/components/header/prev-button.tsx
++++ b/node_modules/react-native-ui-datepicker/src/components/header/prev-button.tsx
+@@ -42,6 +42,8 @@ const PrevButton = ({
+   const theme = colorScheme ?? 'light';
+   const defaultStyles = useMemo(() => createDefaultStyles(isRTL), [isRTL]);
+ 
++  const disabled = calendarView === 'month' || calendarView === 'time';
++
+   const onPress = useCallback(() => {
+     switch (calendarView) {
+       case 'day':
+@@ -60,17 +62,19 @@ const PrevButton = ({
+       ...defaultStyles.icon,
+       tintColor: COLORS[theme].foreground,
+       ...(imageStyle as ImageStyle),
++      opacity: disabled ? 0.35 : 1,
+     }),
+-    [imageStyle, theme, defaultStyles.icon]
++    [imageStyle, theme, defaultStyles.icon, disabled]
+   );
+ 
+   return (
+     <Pressable
+-      disabled={calendarView === 'time'}
++      disabled={disabled}
+       onPress={onPress}
+       testID="btn-prev"
+       accessibilityRole="button"
+       accessibilityLabel="Prev"
++      accessibilityState={{ disabled }}
+     >
+       <View
+         style={[defaultStyles.iconContainer, defaultStyles.prev, style]}
+diff --git a/node_modules/react-native-ui-datepicker/src/components/header/selectors.tsx b/node_modules/react-native-ui-datepicker/src/components/header/selectors.tsx
+index dc6f789..4ae4522 100644
+--- a/node_modules/react-native-ui-datepicker/src/components/header/selectors.tsx
++++ b/node_modules/react-native-ui-datepicker/src/components/header/selectors.tsx
+@@ -11,12 +11,14 @@ type Props = {
+ };
+ 
+ const Selectors = ({ position }: Props) => {
+-  const { mode, calendarView, timePicker, showMonthSelector } =
+-    useCalendarContext();
++  const { mode, calendarView, timePicker } = useCalendarContext();
+ 
++  const showTime = Boolean(timePicker && mode === 'single');
+   const showMonth =
+-    showMonthSelector === true ||
+-    (showMonthSelector !== false && calendarView !== 'year');
++    calendarView === 'day' || calendarView === 'month';
++  const showYear = calendarView === 'day' || calendarView === 'year';
++  const showTimeButton =
++    showTime && (calendarView === 'day' || calendarView === 'time');
+ 
+   return (
+     <View
+@@ -31,13 +33,9 @@ const Selectors = ({ position }: Props) => {
+             },
+       ]}
+     >
+-      <View style={defaultStyles.monthAndYear}>
+-        {showMonth && <MonthButton />}
+-        <YearButton />
+-      </View>
+-      {timePicker && mode === 'single' && calendarView !== 'year' ? (
+-        <TimeButton />
+-      ) : null}
++      {showMonth ? <MonthButton /> : null}
++      {showYear ? <YearButton /> : null}
++      {showTimeButton ? <TimeButton /> : null}
+     </View>
+   );
+ };
+@@ -50,9 +48,4 @@ const defaultStyles = StyleSheet.create({
+     flexDirection: 'row',
+     alignItems: 'center',
+   },
+-  monthAndYear: {
+-    gap: 5,
+-    flexDirection: 'row',
+-    alignItems: 'center',
+-  },
+ });

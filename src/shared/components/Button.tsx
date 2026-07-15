@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 
 import { AppTheme } from "./../../../themes/Theme";
-import { useTheme } from "./../theme/ThemeContext";
+import { useTheme } from "./../providers/ThemeContext";
 
 type ButtonProps = {
   title?: string;

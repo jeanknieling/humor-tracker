@@ -3,7 +3,7 @@ import React, { useMemo } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 import { AppTheme } from "../../../themes/Theme";
-import { useTheme } from "../theme/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 interface IStarRatingProps {
   rate: number;

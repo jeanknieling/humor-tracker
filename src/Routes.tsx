@@ -9,7 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DetailPage } from "./screens/Detail";
 import { HomePage } from "./screens/Home";
 import { SetUserNamePage } from "./screens/SetUserName";
-import { useTheme } from "./shared/theme/ThemeContext";
+import { useTheme } from "./shared/providers/ThemeContext";
 
 type ScreenParams = {
   home: undefined;

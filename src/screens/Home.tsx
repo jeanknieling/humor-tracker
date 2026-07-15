@@ -12,25 +12,26 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { AppTheme } from "./../../themes/Theme";
 import { TNavigationScreenProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Button } from "./../shared/components/Button";
+import { DayCalendarModal } from "./../shared/components/DayCalendarModal";
 import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
 import { HumorCard } from "./../shared/components/HumorCard";
 import { StarRating } from "./../shared/components/StarRating";
 import { loadHumorList, loadUserName, saveHumorList } from "./../shared/storage/appStorage";
-import { useTheme } from "./../shared/theme/ThemeContext";
+import { useSelectedDay } from "./../shared/providers/SelectedDayContext";
+import { useTheme } from "./../shared/providers/ThemeContext";
 import {
   BulkDeleteScope,
   HumorSortDirection,
   HumorSortField,
   IUserHumor
 } from "./../shared/types/humor";
-import { formatDayLabel, isSameDay, isToday, startOfDay } from "./../shared/utils/date";
+import { formatDayLabel, formatHumorQuestion, isSameDay, isToday, toCalendarDateKey } from "./../shared/utils/date";
 
 function sortHumorList(
   list: IUserHumor[],
@@ -69,12 +70,12 @@ const SORT_OPTIONS: { field: HumorSortField; direction: HumorSortDirection; labe
 export const HomePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const { theme, isDark, toggleTheme } = useTheme();
+  const { selectedDay, setSelectedDay } = useSelectedDay();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const isScreenFocused = useIsFocused();
 
   const [userName, setUserName] = useState("");
   const [allHumors, setAllHumors] = useState<IUserHumor[]>([]);
-  const [selectedDay, setSelectedDay] = useState<Date>(() => startOfDay(new Date()));
   const [isDayPickerVisible, setIsDayPickerVisible] = useState(false);
   const [draftRate, setDraftRate] = useState(0);
   const [sortField, setSortField] = useState<HumorSortField>("dateTime");
@@ -92,6 +93,14 @@ export const HomePage = () => {
     () => allHumors.filter((humor) => isSameDay(new Date(humor.dateTime), selectedDay)),
     [allHumors, selectedDay]
   );
+
+  const daysWithHumor = useMemo(() => {
+    const dayKeys = new Set<string>();
+    for (const humor of allHumors) {
+      dayKeys.add(toCalendarDateKey(humor.dateTime));
+    }
+    return [...dayKeys];
+  }, [allHumors]);
 
   const visibleHumorList = bulkDeleteScope === "all" ? allHumors : humorsForSelectedDay;
   const sortedVisibleHumors = useMemo(
@@ -248,13 +257,12 @@ export const HomePage = () => {
         </Pressable>
       )}
 
-      <DateTimePickerModal
-        isVisible={isDayPickerVisible}
-        mode="date"
-        date={selectedDay}
-        isDarkModeEnabled={isDark}
+      <DayCalendarModal
+        visible={isDayPickerVisible}
+        selectedDay={selectedDay}
+        daysWithHumor={daysWithHumor}
         onConfirm={(date) => {
-          setSelectedDay(startOfDay(date));
+          setSelectedDay(date);
           setIsDayPickerVisible(false);
         }}
         onCancel={() => setIsDayPickerVisible(false)}
@@ -426,11 +434,7 @@ export const HomePage = () => {
         ) : (
           <View style={styles.footerContainer}>
             <Text style={styles.footerTitle}>
-              {!hasUserName
-                ? "Qual é o seu nome?"
-                : isToday(selectedDay)
-                  ? "Como está seu humor hoje?"
-                  : `Como estava seu humor em ${selectedDayLabel}?`}
+              {!hasUserName ? "Qual é o seu nome?" : formatHumorQuestion(selectedDay)}
             </Text>
             {!hasUserName ? (
               <BaseInput

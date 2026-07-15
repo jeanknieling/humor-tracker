@@ -16,6 +16,10 @@ export function isToday(date: Date): boolean {
   return isSameDay(date, new Date());
 }
 
+export function isFutureDay(date: Date): boolean {
+  return startOfDay(date).getTime() > startOfDay(new Date()).getTime();
+}
+
 export function formatDayLabel(date: Date): string {
   if (isToday(date)) return "hoje";
 
@@ -24,6 +28,13 @@ export function formatDayLabel(date: Date): string {
     month: "2-digit",
     year: "numeric"
   });
+}
+
+/** Pergunta de humor conforme o dia (hoje / passado / futuro). */
+export function formatHumorQuestion(date: Date): string {
+  if (isToday(date)) return "Como está seu humor hoje?";
+  if (isFutureDay(date)) return `Como estará seu humor em ${formatDayLabel(date)}?`;
+  return `Como estava seu humor em ${formatDayLabel(date)}?`;
 }
 
 export function formatDateTimeLabel(date: Date | number): string {
@@ -36,6 +47,14 @@ export function formatDateTimeLabel(date: Date | number): string {
       minute: "2-digit"
     })
     .replace(",", " às");
+}
+
+export function toCalendarDateKey(date: Date | number | string): string {
+  const value = new Date(date);
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function buildDateTimeForDay(selectedDayMs?: number): Date {

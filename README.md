@@ -15,7 +15,7 @@
 
 ## 📖 Sobre o projeto
 
-O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de forma simples e visual. Você avalia como está se sentindo com estrelas, pode adicionar uma descrição, escolher data e hora, e acompanhar o histórico em uma lista organizada.
+O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de forma simples e visual. Você avalia como está se sentindo com estrelas, adiciona uma descrição, escolhe data e hora, e acompanha o histórico em uma lista organizada.
 
 💡 A ideia do aplicativo foi inspirada no conteúdo do canal **[Lucas Souza Dev](https://www.youtube.com/@LucasSouzaDev)** no YouTube. Este projeto foi desenvolvido como prática e evolução a partir dessa proposta.
 
@@ -40,8 +40,8 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
     </tr>
     <tr>
       <td>📝</td>
-      <td>Descrição opcional</td>
-      <td>Escreva mais detalhes sobre como está se sentindo.</td>
+      <td>Descrição</td>
+      <td>Escreva detalhes sobre como está se sentindo.</td>
     </tr>
     <tr>
       <td>📅</td>
@@ -51,7 +51,7 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
     <tr>
       <td>🗓️</td>
       <td>Filtro por dia</td>
-      <td>Escolha um dia no calendário do header e veja só os humores daquela data. Novos registros herdam o dia selecionado.</td>
+      <td>Escolha um dia no calendário do header e veja só os humores daquela data. Dias com registro aparecem marcados no calendário. Novos registros herdam o dia selecionado.</td>
     </tr>
     <tr>
       <td>✏️</td>
@@ -102,7 +102,7 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 ### 🔍 Detalhe
 
 - ➕ Criação ou edição de um humor
-- ⭐📅📝 Avaliação, data/hora e descrição
+- ⭐📅📝 Avaliação, data/hora e descrição (obrigatória para salvar)
 - 🗓️ Ao criar a partir de um dia filtrado, a data inicial já usa esse dia
 - 💾❌🗑️ Ações de salvar, cancelar e excluir
 
@@ -120,7 +120,8 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 - 🧭 **[React Navigation](https://reactnavigation.org/)** — navegação em stack / form sheets
 - 💾 **[AsyncStorage](https://docs.expo.dev/versions/latest/sdk/async-storage/)** — persistência local
 - 🔤 **[Expo Google Fonts (Inter)](https://github.com/expo/google-fonts)** — tipografia
-- 🗓️ **[React Native Modal Datetime Picker](https://github.com/mmazzarolo/react-native-modal-datetime-picker)** — seleção de data e hora
+- 📆 **[React Native UI DatePicker](https://github.com/farhoudshapouran/react-native-ui-datepicker)** — calendário com marcação dos dias com humor e seleção de horário
+- 🩹 **[patch-package](https://github.com/ds300/patch-package)** — ajustes no datepicker (header de seleção mês/ano/hora)
 
 ---
 
@@ -131,8 +132,10 @@ humor-tracker/
 ├── 🎨 assets/                  # Ícone, splash e favicon
 ├── 🎨 themes/
 │   └── Theme.ts                # Tokens de cor, fonte e sombra (light/dark)
+├── 🩹 patches/                 # Patches aplicados no postinstall
+│   └── react-native-ui-datepicker+3.3.0.patch
 ├── 📁 src/
-│   ├── App.tsx                 # Entrada do app (fonts + ThemeProvider)
+│   ├── App.tsx                 # Entrada do app (fonts + AppProviders)
 │   ├── Routes.tsx              # Navegação e layouts das telas
 │   ├── index.ts
 │   ├── 📱 screens/
@@ -140,11 +143,11 @@ humor-tracker/
 │   │   ├── Detail.tsx          # Criar / editar / excluir humor
 │   │   └── SetUserName.tsx     # Nome do usuário
 │   └── 🧩 shared/
-│       ├── components/         # Header, Footer, HumorCard, StarRating, etc.
+│       ├── components/         # Header, Footer, HumorCard, DayCalendarModal, etc.
+│       ├── providers/          # AppProviders, Theme e SelectedDay
 │       ├── storage/            # Leitura/escrita no AsyncStorage
 │       ├── types/              # Tipos de humor e ordenação
-│       ├── utils/              # Helpers de data e formatação
-│       └── theme/              # ThemeContext (modo claro/escuro)
+│       └── utils/              # Helpers de data e formatação
 ├── ⚙️ app.json
 └── 📦 package.json
 ```
@@ -154,7 +157,7 @@ humor-tracker/
 ## ✅ Pré-requisitos
 
 - 🟢 [Node.js](https://nodejs.org/) (LTS recomendado)
-- 📦 [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
+- 📦 [yarn](https://yarnpkg.com/) (recomendado) ou [npm](https://www.npmjs.com/)
 - 📲 [Expo Go](https://expo.dev/go) no celular **ou** Android Studio / Xcode para emulador
 - 🤖 Para gerar APK local: Android SDK configurado
 
@@ -167,11 +170,11 @@ humor-tracker/
 git clone "https://github.com/jeanknieling/humor-tracker"
 cd humor-tracker
 
-# 2. Instale as dependências
-npm install
+# 2. Instale as dependências (aplica o patch do datepicker no postinstall)
+yarn install
 
 # 3. Inicie o projeto
-npx expo start
+yarn start
 ```
 
 Depois disso:
@@ -182,15 +185,6 @@ Depois disso:
 <p align="left">
   <strong>⚠️ OBS: O aplicativo ainda não foi testado em dispositivos iOS.</strong> O funcionamento nessa plataforma não é garantido e podem ser necessários ajustes.
 </p>
-
-### 📜 Scripts disponíveis
-
-| Comando                           | Descrição                         |
-| --------------------------------- | --------------------------------- |
-| ▶️ `npm start` / `npx expo start` | Sobe o Metro bundler              |
-| 🤖 `npm run android`              | Abre no Android (`expo start -a`) |
-| 🍎 `npm run ios`                  | Abre no iOS (`expo start -i`)     |
-| 🌐 `npm run web`                  | Abre versão web                   |
 
 ---
 
@@ -216,7 +210,7 @@ android/app/build/outputs/apk/debug/app-debug.apk
 ### ☁️ Via EAS Build (nuvem)
 
 ```bash
-npm install -g eas-cli
+yarn global add eas-cli
 eas login
 eas build:configure
 eas build -p android --profile preview

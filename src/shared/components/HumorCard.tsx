@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { AppTheme } from "./../../../themes/Theme";
-import { useTheme } from "./../theme/ThemeContext";
+import { useTheme } from "./../providers/ThemeContext";
 import { formatDateTimeLabel } from "./../utils/date";
 import { StarRating } from "./StarRating";
 

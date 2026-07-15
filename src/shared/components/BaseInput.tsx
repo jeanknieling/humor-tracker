@@ -2,15 +2,14 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppTheme } from "../../../themes/Theme";
-import { useTheme } from "../theme/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 type IBaseInputProps = {
   children: React.ReactNode;
   label: string;
   asButton?: boolean;
   onPress?: () => void;
-  onChangeText?: (text: string) => string;
-}
+};
 
 export const BaseInput = ({ children, label, asButton, onPress }: IBaseInputProps) => {
   const { theme } = useTheme();

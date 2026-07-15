@@ -1,8 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from "uuid";
 
@@ -10,21 +9,26 @@ import { AppTheme } from "./../../themes/Theme";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Button } from "./../shared/components/Button";
+import { DayCalendarModal } from "./../shared/components/DayCalendarModal";
 import { StarRating } from "./../shared/components/StarRating";
 import { loadHumorList, saveHumorList } from "./../shared/storage/appStorage";
-import { useTheme } from "./../shared/theme/ThemeContext";
+import { useSelectedDay } from "./../shared/providers/SelectedDayContext";
+import { useTheme } from "./../shared/providers/ThemeContext";
 import { IUserHumor } from "./../shared/types/humor";
 import {
   buildDateTimeForDay,
   formatDateTimeLabel,
-  formatDayLabel,
-  isToday
+  formatHumorQuestion,
+  isSameDay,
+  startOfDay,
+  toCalendarDateKey
 } from "./../shared/utils/date";
 
 export const DetailPage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const insets = useSafeAreaInsets();
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
+  const { selectedDay, setSelectedDay } = useSelectedDay();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { params } = useRoute<TRouteProps<"detail">>();
 
@@ -33,26 +37,52 @@ export const DetailPage = () => {
   const [rate, setRate] = useState(params.rate ?? 1);
   const [dateTime, setDateTime] = useState<Date>(() => buildDateTimeForDay(params.selectedDay));
   const [description, setDescription] = useState("");
-  const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
+  const [isDayPickerVisible, setIsDayPickerVisible] = useState(false);
+  const [daysWithHumor, setDaysWithHumor] = useState<string[]>([]);
+  const descriptionInputRef = useRef<TextInput>(null);
+  const dayWhenOpenedRef = useRef(startOfDay(selectedDay));
+  const originalDateTimeRef = useRef<Date | null>(null);
+  const didSaveRef = useRef(false);
 
-  const pageTitle = isToday(dateTime)
-    ? "Como está seu humor hoje?"
-    : `Como estava seu humor em ${formatDayLabel(dateTime)}?`;
+  const trimmedDescription = description.trim();
+  const canSave = trimmedDescription.length > 0;
+
+  const pageTitle = formatHumorQuestion(dateTime);
 
   const handleSave = async () => {
+    if (!canSave) {
+      Alert.alert("Descrição obrigatória", "Escreva uma descrição antes de salvar.", [
+        {
+          text: "OK",
+          onPress: () => descriptionInputRef.current?.focus()
+        }
+      ]);
+      return;
+    }
+
+    const dayChangedWhileEditing =
+      isEditingExisting &&
+      originalDateTimeRef.current != null &&
+      !isSameDay(dateTime, originalDateTimeRef.current);
+
     const humorToSave: IUserHumor = {
-      id: params.id || uuidv4(),
+      id: dayChangedWhileEditing || !params.id ? uuidv4() : params.id,
       dateTime: dateTime.getTime(),
       rate,
-      description
+      description: trimmedDescription
     };
 
     try {
       const currentList = await loadHumorList();
-      const listWithoutThisHumor = currentList.filter((item) => item.id !== humorToSave.id);
-      const updatedList = [humorToSave, ...listWithoutThisHumor];
+      const listWithoutReplaced =
+        dayChangedWhileEditing || !params.id
+          ? currentList
+          : currentList.filter((item) => item.id !== params.id);
+      const updatedList = [humorToSave, ...listWithoutReplaced];
 
       await saveHumorList(updatedList);
+      didSaveRef.current = true;
+      setSelectedDay(dateTime);
       navigation.popTo("home");
     } catch {
       Alert.alert("Erro ao salvar o humor no histórico");
@@ -66,6 +96,7 @@ export const DetailPage = () => {
       const currentList = await loadHumorList();
       const updatedList = currentList.filter((item) => item.id !== params.id);
       await saveHumorList(updatedList);
+      didSaveRef.current = true;
       navigation.popTo("home");
     } catch {
       Alert.alert("Erro ao deletar o humor no histórico");
@@ -80,17 +111,42 @@ export const DetailPage = () => {
   };
 
   useEffect(() => {
-    if (!params.id) return;
+    dayWhenOpenedRef.current = startOfDay(selectedDay);
+    didSaveRef.current = false;
+  }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", () => {
+      if (!didSaveRef.current) {
+        setSelectedDay(dayWhenOpenedRef.current);
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, setSelectedDay]);
+
+  useEffect(() => {
     loadHumorList().then((humorList) => {
+      const dayKeys = new Set<string>();
+      for (const humor of humorList) {
+        dayKeys.add(toCalendarDateKey(humor.dateTime));
+      }
+      setDaysWithHumor([...dayKeys]);
+
+      if (!params.id) return;
+
       const humor = humorList.find((item) => item.id === params.id);
       if (!humor) return;
 
-      setDateTime(new Date(humor.dateTime));
+      const humorDate = new Date(humor.dateTime);
+      setDateTime(humorDate);
       setRate(humor.rate);
       setDescription(humor.description);
+      setSelectedDay(humorDate);
+      dayWhenOpenedRef.current = startOfDay(humorDate);
+      originalDateTimeRef.current = humorDate;
     });
-  }, [params.id]);
+  }, [params.id, setSelectedDay]);
 
   return (
     <View style={{ ...styles.container, paddingBottom: insets.bottom }}>
@@ -104,11 +160,11 @@ export const DetailPage = () => {
       <BaseInput
         label="Data e hora"
         asButton
-        onPress={() => setIsDateTimePickerVisible(true)}
+        onPress={() => setIsDayPickerVisible(true)}
       >
         <TextInput
           style={styles.input}
-          placeholder="Selecione a data e hora aqui..."
+          placeholder="Selecione a data aqui..."
           placeholderTextColor={theme.colors.textPlaceholder}
           editable={false}
           pointerEvents="none"
@@ -116,20 +172,22 @@ export const DetailPage = () => {
         />
       </BaseInput>
 
-      <DateTimePickerModal
-        isVisible={isDateTimePickerVisible}
-        mode="datetime"
-        date={dateTime}
-        isDarkModeEnabled={isDark}
-        onConfirm={(date) => {
-          setDateTime(date);
-          setIsDateTimePickerVisible(false);
+      <DayCalendarModal
+        visible={isDayPickerVisible}
+        selectedDay={dateTime}
+        daysWithHumor={daysWithHumor}
+        withTime
+        onConfirm={(nextDateTime) => {
+          setDateTime(nextDateTime);
+          setSelectedDay(nextDateTime);
+          setIsDayPickerVisible(false);
         }}
-        onCancel={() => setIsDateTimePickerVisible(false)}
+        onCancel={() => setIsDayPickerVisible(false)}
       />
 
       <BaseInput label="Descreva mais sobre o seu humor">
         <TextInput
+          ref={descriptionInputRef}
           style={{ ...styles.input, ...styles.inputMultiline }}
           placeholder="Escreva uma descrição aqui..."
           placeholderTextColor={theme.colors.textPlaceholder}

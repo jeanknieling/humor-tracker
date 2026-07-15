@@ -8,7 +8,7 @@ import { TNavigationScreenProps } from "./../Routes";
 import { BaseInput } from "./../shared/components/BaseInput";
 import { Button } from "./../shared/components/Button";
 import { loadUserName, saveUserName } from "./../shared/storage/appStorage";
-import { useTheme } from "./../shared/theme/ThemeContext";
+import { useTheme } from "./../shared/providers/ThemeContext";
 
 export const SetUserNamePage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
