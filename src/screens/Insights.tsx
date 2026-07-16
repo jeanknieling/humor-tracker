@@ -19,6 +19,7 @@ import {
   PeriodSelection
 } from "./../shared/utils/date";
 import { computeHumorPeriodStats, MonthBucket } from "./../shared/utils/humorStats";
+import { ensureInsightsStack, resetToHome } from "./../shared/utils/navigation";
 
 const PERIOD_MODES: { mode: PeriodMode; label: string }[] = [
   { mode: "month", label: "Mês" },
@@ -108,7 +109,8 @@ export const InsightsPage = () => {
   useFocusEffect(
     useCallback(() => {
       loadHumorList().then(setHumors);
-    }, [])
+      ensureInsightsStack(navigation);
+    }, [navigation])
   );
 
   const periodLabel = useMemo(() => formatPeriodLabel(selection), [selection]);
@@ -181,7 +183,7 @@ export const InsightsPage = () => {
     <View style={styles.screen}>
       <View style={styles.topBar}>
         <Pressable
-          onPress={() => navigation.goBack()}
+          onPress={() => resetToHome(navigation)}
           style={styles.backButton}
           accessibilityLabel="Voltar"
         >

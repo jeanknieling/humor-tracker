@@ -56,7 +56,7 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
     <tr>
       <td>📊</td>
       <td>Estatísticas de humor</td>
-      <td>Média do humor em um período (mês ou ano, com de/até). Mostra volume de registros, melhor(es)/pior(es) e barras por mês. Toque para listar e editar os registros.</td>
+      <td>Média do humor em um período (mês ou ano, com de/até), com estrelas parciais na média fracionária. Mostra volume de registros, melhor(es)/pior(es) (só quando há diferença de nota) e barras por mês. Toque para listar e editar. Voltar nas estatísticas sempre retorna à Home.</td>
     </tr>
     <tr>
       <td>✏️</td>
@@ -76,7 +76,7 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
     <tr>
       <td>👤</td>
       <td>Nome do usuário</td>
-      <td>Personalize o aplicativo com o seu nome e altere-o quando desejar (espaços extras são removidos ao salvar).</td>
+      <td>Personalize o aplicativo com o seu nome e altere-o quando desejar (espaços no início/fim são removidos ao salvar).</td>
     </tr>
     <tr>
       <td>🌙</td>
@@ -107,16 +107,17 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 ### 📊 Estatísticas
 
 - 📅 Período por **mês** ou **ano**, sempre com intervalo de/até
-- ⭐ Média do humor no período e quantidade de registros
-- 🏆 Cartões de **melhor** / **melhores** e **pior** / **piores** (conforme a quantidade); toque abre a lista e permite editar
+- ⭐ Média do humor no período (estrelas SVG com preenchimento parcial, ex.: 4,3) e quantidade de registros
+- 🏆 Cartões de **melhor** / **melhores** e **pior** / **piores** (somente quando a maior nota é diferente da menor); toque abre a lista e permite editar
 - 📈 Barras de média por mês; toque abre os registros daquele mês
 - 🔄 Ao voltar da edição, as estatísticas e a lista são atualizadas
+- 🏠 Voltar limpa a pilha e retorna à Home
 - ⚙️ Menu de opções (alterar nome, tema) — sem ordenação/exclusão em massa nesta tela
 
 ### 📋 Lista a partir das estatísticas
 
-- 🃏 Cards de melhores, piores ou de um mês específico
-- 🔀 Ordenação e exclusão em massa (mesmo menu de opções das listagens)
+- 🃏 Cards de registros do período, melhores, piores ou de um mês específico
+- 🔀 Ordenação e exclusão em massa (mesmo menu de opções das listagens; exclusão em massa só com mais de um card)
 - ✏️ Toque no card para editar
 
 ### 🔍 Detalhe
@@ -141,6 +142,9 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 - 💾 **[AsyncStorage](https://docs.expo.dev/versions/latest/sdk/async-storage/)** — persistência local
 - 🔤 **[Expo Google Fonts (Inter)](https://github.com/expo/google-fonts)** — tipografia
 - 📆 **[React Native UI DatePicker](https://github.com/farhoudshapouran/react-native-ui-datepicker)** — calendário com marcação dos dias com humor e seleção de horário
+- 🗓️ **[dayjs](https://day.js.org/)** — datas do datepicker (locale `pt-br`)
+- ⭐ **[react-native-svg](https://github.com/software-mansion/react-native-svg)** — estrelas SVG com preenchimento parcial nas médias
+- 🆔 **[uuid](https://github.com/uuidjs/uuid)** (+ `react-native-get-random-values`) — IDs dos registros
 - 🩹 **[patch-package](https://github.com/ds300/patch-package)** — ajustes no datepicker (header de seleção mês/ano/hora)
 
 ---
@@ -165,11 +169,12 @@ humor-tracker/
 │   │   ├── Detail.tsx          # Criar / editar / excluir humor
 │   │   └── SetUserName.tsx     # Nome do usuário
 │   └── 🧩 shared/
-│       ├── components/         # Header, Footer, HumorCard, OptionsMenu, DayCalendarModal, etc.
+│       ├── components/         # Header, Footer, HumorCard, OptionsMenu, DayCalendarModal, StarRating, etc.
+│       ├── hooks/              # useHumorSelection (seleção em massa)
 │       ├── providers/          # AppProviders, Theme e SelectedDay
 │       ├── storage/            # Leitura/escrita no AsyncStorage
 │       ├── types/              # Tipos de humor e ordenação
-│       └── utils/              # Helpers de data, períodos e estatísticas
+│       └── utils/              # Data, períodos, estatísticas, navegação e ordenação
 ├── ⚙️ app.json
 └── 📦 package.json
 ```
@@ -230,6 +235,8 @@ android/app/build/outputs/apk/debug/app-debug.apk
 💡 **Dica (Windows):** se o build falhar com _Filename longer than 260 characters_, mova o projeto para um caminho mais curto (ex.: `C:\dev\humor-tracker`) ou habilite long paths no sistema.
 
 ### ☁️ Via EAS Build (nuvem)
+
+Opcional — requer configurar o [EAS](https://docs.expo.dev/build/setup/) no projeto (`eas build:configure`):
 
 ```bash
 yarn global add eas-cli

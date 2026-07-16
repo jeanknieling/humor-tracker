@@ -8,6 +8,7 @@ import { TNavigationScreenProps } from "../../Routes";
 import { useTheme } from "../providers/ThemeContext";
 import { HumorSortDirection, HumorSortField } from "../types/humor";
 import { SORT_OPTIONS } from "../utils/humorSort";
+import { resetToInsights } from "../utils/navigation";
 
 type OptionsMenuListActions = {
   canSort: boolean;
@@ -88,7 +89,7 @@ export function OptionsMenu({
                   style={styles.modalOptionRow}
                   onPress={() => {
                     closeMenu();
-                    navigation.navigate("insights");
+                    resetToInsights(navigation);
                   }}
                 >
                   <Text style={styles.modalOptionText}>Estatísticas de humor</Text>

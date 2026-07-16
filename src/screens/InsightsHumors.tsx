@@ -138,6 +138,7 @@ export const InsightsHumorsPage = () => {
       <OptionsMenu
         visible={isOptionsMenuOpen}
         onClose={() => setIsOptionsMenuOpen(false)}
+        showInsightsOption={false}
         listActions={{
           canSort,
           sortField,
