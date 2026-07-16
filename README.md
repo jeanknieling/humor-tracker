@@ -54,6 +54,11 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
       <td>Escolha um dia no calendário do header e veja só os humores daquela data. Dias com registro aparecem marcados no calendário. Novos registros herdam o dia selecionado.</td>
     </tr>
     <tr>
+      <td>📊</td>
+      <td>Estatísticas de humor</td>
+      <td>Média do humor em um período (mês ou ano, com de/até). Mostra volume de registros, melhor(es)/pior(es) e barras por mês. Toque para listar e editar os registros.</td>
+    </tr>
+    <tr>
       <td>✏️</td>
       <td>Edição e exclusão</td>
       <td>Abra um card para editar ou excluir um registro.</td>
@@ -95,9 +100,17 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 - 👋 Saudação personalizada com o nome do usuário
 - 🗓️ Calendário no header para filtrar humores por dia
 - 📋 Lista de cards do dia selecionado (ou de todos, no modo exclusão em massa)
-- ⚙️ Menu de opções (alterar nome, tema, ordenação, excluir vários)
+- ⚙️ Menu de opções (alterar nome, estatísticas, tema, ordenação, excluir vários)
 - ✅ Modo de seleção para excluir vários registros de uma vez
 - ⭐ Footer para iniciar um novo registro pela avaliação em estrelas (no dia escolhido)
+
+### 📊 Estatísticas
+
+- 📅 Período por **mês** ou **ano**, sempre com intervalo de/até
+- ⭐ Média do humor no período e quantidade de registros
+- 🏆 Cartões de **melhor** / **melhores** e **pior** / **piores** (conforme a quantidade); toque abre a lista e permite editar
+- 📈 Barras de média por mês; toque abre os registros daquele mês
+- 🔄 Ao voltar da edição, as estatísticas e a lista são atualizadas
 
 ### 🔍 Detalhe
 
@@ -140,6 +153,8 @@ humor-tracker/
 │   ├── index.ts
 │   ├── 📱 screens/
 │   │   ├── Home.tsx            # Lista por dia, menu, seleção e novo humor
+│   │   ├── Insights.tsx        # Estatísticas: média e barras por período
+│   │   ├── InsightsHumors.tsx  # Lista de melhores/piores ou humores do mês
 │   │   ├── Detail.tsx          # Criar / editar / excluir humor
 │   │   └── SetUserName.tsx     # Nome do usuário
 │   └── 🧩 shared/
@@ -147,7 +162,7 @@ humor-tracker/
 │       ├── providers/          # AppProviders, Theme e SelectedDay
 │       ├── storage/            # Leitura/escrita no AsyncStorage
 │       ├── types/              # Tipos de humor e ordenação
-│       └── utils/              # Helpers de data e formatação
+│       └── utils/              # Helpers de data, períodos e estatísticas
 ├── ⚙️ app.json
 └── 📦 package.json
 ```

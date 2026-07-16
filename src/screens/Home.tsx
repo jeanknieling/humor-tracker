@@ -22,16 +22,22 @@ import { Footer } from "./../shared/components/Footer";
 import { Header } from "./../shared/components/Header";
 import { HumorCard } from "./../shared/components/HumorCard";
 import { StarRating } from "./../shared/components/StarRating";
-import { loadHumorList, loadUserName, saveHumorList } from "./../shared/storage/appStorage";
 import { useSelectedDay } from "./../shared/providers/SelectedDayContext";
 import { useTheme } from "./../shared/providers/ThemeContext";
+import { loadHumorList, loadUserName, saveHumorList } from "./../shared/storage/appStorage";
 import {
   BulkDeleteScope,
   HumorSortDirection,
   HumorSortField,
   IUserHumor
 } from "./../shared/types/humor";
-import { formatDayLabel, formatHumorQuestion, getDaysWithHumorKeys, isSameDay, isToday } from "./../shared/utils/date";
+import {
+  formatDayLabel,
+  formatHumorQuestion,
+  getDaysWithHumorKeys,
+  isSameDay,
+  isToday
+} from "./../shared/utils/date";
 
 function sortHumorList(
   list: IUserHumor[],
@@ -301,6 +307,20 @@ export const HomePage = () => {
                     color={theme.colors.text}
                   />
                 </Pressable>
+                <Pressable
+                  style={styles.modalOptionRow}
+                  onPress={() => {
+                    closeOptionsMenu();
+                    navigation.navigate("insights");
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>Estatísticas de humor</Text>
+                  <Ionicons
+                    name="analytics-outline"
+                    size={18}
+                    color={theme.colors.text}
+                  />
+                </Pressable>
                 {canSort && (
                   <>
                     <Pressable
@@ -510,7 +530,6 @@ const createStyles = (theme: AppTheme) =>
       backgroundColor: theme.colors.paper,
       borderRadius: 8,
       minWidth: 220,
-      ...theme.shadows.default,
       overflow: "hidden"
     },
     modalTitle: {

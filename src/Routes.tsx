@@ -8,11 +8,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DetailPage } from "./screens/Detail";
 import { HomePage } from "./screens/Home";
+import { InsightsPage } from "./screens/Insights";
+import { InsightsHumorsPage } from "./screens/InsightsHumors";
 import { SetUserNamePage } from "./screens/SetUserName";
 import { useTheme } from "./shared/providers/ThemeContext";
+import { PeriodSelection } from "./shared/utils/date";
+
+type InsightsHumorsSource =
+  | { type: "best"; period: PeriodSelection }
+  | { type: "worst"; period: PeriodSelection }
+  | { type: "month"; year: number; month: number };
 
 type ScreenParams = {
   home: undefined;
+  insights: undefined;
+  insightsHumors: { title: string; source: InsightsHumorsSource };
   setUserName: undefined;
   detail: { rate?: number; id?: string; selectedDay?: number };
 };
@@ -44,6 +54,14 @@ export const AppRouters = () => {
         <Stack.Screen
           name="home"
           component={HomePage}
+        />
+        <Stack.Screen
+          name="insights"
+          component={InsightsPage}
+        />
+        <Stack.Screen
+          name="insightsHumors"
+          component={InsightsHumorsPage}
         />
 
         <Stack.Group

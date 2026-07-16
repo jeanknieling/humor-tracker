@@ -32,7 +32,6 @@ const createStyles = (theme: AppTheme) =>
       padding: 16,
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
-      backgroundColor: theme.colors.paper,
-      ...theme.shadows.default,
+      backgroundColor: theme.colors.paper
     },
   });

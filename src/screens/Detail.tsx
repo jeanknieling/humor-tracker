@@ -83,7 +83,7 @@ export const DetailPage = () => {
       await saveHumorList(updatedList);
       didSaveRef.current = true;
       setSelectedDay(dateTime);
-      navigation.popTo("home");
+      navigation.goBack();
     } catch {
       Alert.alert("Erro ao salvar o humor no histórico");
     }
@@ -97,7 +97,7 @@ export const DetailPage = () => {
       const updatedList = currentList.filter((item) => item.id !== params.id);
       await saveHumorList(updatedList);
       didSaveRef.current = true;
-      navigation.popTo("home");
+      navigation.goBack();
     } catch {
       Alert.alert("Erro ao deletar o humor no histórico");
     }

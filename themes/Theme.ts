@@ -13,16 +13,6 @@ const fonts = {
   }
 } as const;
 
-const shadows = {
-  default: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 10
-  }
-} as const;
-
 const lightColors = {
   background: "#F2F2F2",
   paper: "#FFFFFF",
@@ -38,7 +28,7 @@ const lightColors = {
 
 const darkColors = {
   background: "#121212",
-  paper: "#1E1E1E",
+  paper: "#222222",
   text: "#F5F5F5",
   textPlaceholder: "#8A8A8A",
   primary: "#A78BFF",
@@ -46,7 +36,7 @@ const darkColors = {
   error: "#FF6B6B",
   highlight: "#E0D53B",
   backgroundHighlight: "rgba(224, 213, 59, 0.22)",
-  backgroundOverlay: "rgba(255,255,255,0.1)"
+  backgroundOverlay: "rgba(2550,2550,2550,0.1)"
 } as const;
 
 type ThemeColors = {
@@ -66,14 +56,12 @@ export type AppTheme = {
   mode: ThemeMode;
   colors: ThemeColors;
   fonts: typeof fonts;
-  shadows: typeof shadows;
 };
 
 export function getTheme(mode: ThemeMode): AppTheme {
   return {
     mode,
     colors: mode === "dark" ? darkColors : lightColors,
-    fonts,
-    shadows
+    fonts
   };
 }

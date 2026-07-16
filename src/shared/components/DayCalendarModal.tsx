@@ -434,8 +434,7 @@ const createStyles = (theme: AppTheme) =>
       borderRadius: 16,
       padding: 16,
       gap: 12,
-      zIndex: 1,
-      ...theme.shadows.default
+      zIndex: 1
     },
     title: {
       textAlign: "center",
