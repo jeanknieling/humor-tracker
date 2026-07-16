@@ -12,7 +12,7 @@ export function startOfDay(date: Date): Date {
   return next;
 }
 
-export function endOfDay(date: Date): Date {
+function endOfDay(date: Date): Date {
   const next = new Date(date);
   next.setHours(23, 59, 59, 999);
   return next;
@@ -99,19 +99,19 @@ export type DateRange = {
   end: Date;
 };
 
-export function startOfMonth(year: number, month: number): Date {
+function startOfMonth(year: number, month: number): Date {
   return startOfDay(new Date(year, month, 1));
 }
 
-export function endOfMonth(year: number, month: number): Date {
+function endOfMonth(year: number, month: number): Date {
   return endOfDay(new Date(year, month + 1, 0));
 }
 
-export function startOfYear(year: number): Date {
+function startOfYear(year: number): Date {
   return startOfDay(new Date(year, 0, 1));
 }
 
-export function endOfYear(year: number): Date {
+function endOfYear(year: number): Date {
   return endOfDay(new Date(year, 11, 31));
 }
 

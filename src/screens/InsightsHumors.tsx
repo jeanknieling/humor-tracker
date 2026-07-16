@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppTheme } from "./../../themes/Theme";
@@ -9,6 +9,7 @@ import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { Button } from "./../shared/components/Button";
 import { HumorCard } from "./../shared/components/HumorCard";
 import { OptionsMenu } from "./../shared/components/OptionsMenu";
+import { useHumorSelection } from "./../shared/hooks/useHumorSelection";
 import { useTheme } from "./../shared/providers/ThemeContext";
 import { loadHumorList, saveHumorList } from "./../shared/storage/appStorage";
 import { HumorSortDirection, HumorSortField, IUserHumor } from "./../shared/types/humor";
@@ -50,7 +51,6 @@ export const InsightsHumorsPage = () => {
   const [sortField, setSortField] = useState<HumorSortField>("dateTime");
   const [sortDirection, setSortDirection] = useState<HumorSortDirection>("desc");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [selectedHumorIds, setSelectedHumorIds] = useState<string[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -59,6 +59,19 @@ export const InsightsHumorsPage = () => {
   );
 
   const filteredHumors = useMemo(() => resolveHumors(allHumors, params), [allHumors, params]);
+  const visibleIds = useMemo(
+    () => filteredHumors.map((humor) => humor.id),
+    [filteredHumors]
+  );
+  const {
+    selectedHumorIds,
+    clearSelection,
+    toggleHumorSelection,
+    toggleSelectAllVisible,
+    areAllVisibleSelected,
+    confirmDeleteSelected
+  } = useHumorSelection(visibleIds);
+
   const sortedHumors = useMemo(
     () => sortHumorList(filteredHumors, sortField, sortDirection),
     [filteredHumors, sortField, sortDirection]
@@ -66,62 +79,26 @@ export const InsightsHumorsPage = () => {
 
   const canSort = filteredHumors.length > 1;
   const canBulkDelete = filteredHumors.length > 1 && !isSelectionMode;
-  const areAllVisibleSelected =
-    filteredHumors.length > 0 &&
-    filteredHumors.every((humor) => selectedHumorIds.includes(humor.id));
 
   const exitSelectionMode = () => {
     setIsSelectionMode(false);
-    setSelectedHumorIds([]);
+    clearSelection();
   };
 
   const enterSelectionMode = () => {
     setIsOptionsMenuOpen(false);
     setIsSelectionMode(true);
-    setSelectedHumorIds([]);
-  };
-
-  const toggleHumorSelection = (id: string) => {
-    setSelectedHumorIds((currentIds) =>
-      currentIds.includes(id) ? currentIds.filter((itemId) => itemId !== id) : [...currentIds, id]
-    );
-  };
-
-  const toggleSelectAllVisible = () => {
-    if (areAllVisibleSelected) {
-      setSelectedHumorIds([]);
-      return;
-    }
-    setSelectedHumorIds(filteredHumors.map((humor) => humor.id));
+    clearSelection();
   };
 
   const handleDeleteSelectedHumors = () => {
-    if (selectedHumorIds.length === 0) return;
-
-    const selectedCount = selectedHumorIds.length;
-
-    Alert.alert(
-      "Excluir selecionados",
-      `Tem certeza que deseja excluir ${selectedCount} registro${selectedCount > 1 ? "s" : ""}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const idsToDelete = new Set(selectedHumorIds);
-              const remainingHumors = allHumors.filter((humor) => !idsToDelete.has(humor.id));
-              await saveHumorList(remainingHumors);
-              setAllHumors(remainingHumors);
-              exitSelectionMode();
-            } catch {
-              Alert.alert("Erro ao excluir os registros de humor");
-            }
-          }
-        }
-      ]
-    );
+    confirmDeleteSelected(async (ids) => {
+      const idsToDelete = new Set(ids);
+      const remainingHumors = allHumors.filter((humor) => !idsToDelete.has(humor.id));
+      await saveHumorList(remainingHumors);
+      setAllHumors(remainingHumors);
+      exitSelectionMode();
+    });
   };
 
   return (

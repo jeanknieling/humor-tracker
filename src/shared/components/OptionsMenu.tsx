@@ -9,7 +9,7 @@ import { useTheme } from "../providers/ThemeContext";
 import { HumorSortDirection, HumorSortField } from "../types/humor";
 import { SORT_OPTIONS } from "../utils/humorSort";
 
-export type OptionsMenuListActions = {
+type OptionsMenuListActions = {
   canSort: boolean;
   sortField: HumorSortField;
   sortDirection: HumorSortDirection;

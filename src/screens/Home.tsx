@@ -21,6 +21,7 @@ import { Header } from "./../shared/components/Header";
 import { HumorCard } from "./../shared/components/HumorCard";
 import { OptionsMenu } from "./../shared/components/OptionsMenu";
 import { StarRating } from "./../shared/components/StarRating";
+import { useHumorSelection } from "./../shared/hooks/useHumorSelection";
 import { useSelectedDay } from "./../shared/providers/SelectedDayContext";
 import { useTheme } from "./../shared/providers/ThemeContext";
 import { loadHumorList, loadUserName, saveHumorList } from "./../shared/storage/appStorage";
@@ -54,7 +55,6 @@ export const HomePage = () => {
   const [sortDirection, setSortDirection] = useState<HumorSortDirection>("desc");
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
   const [bulkDeleteScope, setBulkDeleteScope] = useState<BulkDeleteScope | null>(null);
-  const [selectedHumorIds, setSelectedHumorIds] = useState<string[]>([]);
 
   const isSelectionMode = bulkDeleteScope != null;
   const hasUserName = Boolean(userName.trim());
@@ -69,6 +69,19 @@ export const HomePage = () => {
   const daysWithHumor = useMemo(() => getDaysWithHumorKeys(allHumors), [allHumors]);
 
   const visibleHumorList = bulkDeleteScope === "all" ? allHumors : humorsForSelectedDay;
+  const visibleIds = useMemo(
+    () => visibleHumorList.map((humor) => humor.id),
+    [visibleHumorList]
+  );
+  const {
+    selectedHumorIds,
+    clearSelection,
+    toggleHumorSelection,
+    toggleSelectAllVisible,
+    areAllVisibleSelected,
+    confirmDeleteSelected
+  } = useHumorSelection(visibleIds);
+
   const sortedVisibleHumors = useMemo(
     () => sortHumorList(visibleHumorList, sortField, sortDirection),
     [visibleHumorList, sortField, sortDirection]
@@ -79,13 +92,10 @@ export const HomePage = () => {
   const hasAnyHumors = allHumors.length > 0;
   const selectedDayNumber = selectedDay.getDate();
   const selectedDayLabel = formatDayLabel(selectedDay);
-  const areAllVisibleSelected =
-    visibleHumorList.length > 0 &&
-    visibleHumorList.every((humor) => selectedHumorIds.includes(humor.id));
 
   const exitSelectionMode = () => {
     setBulkDeleteScope(null);
-    setSelectedHumorIds([]);
+    clearSelection();
   };
 
   const persistHumorList = async (nextList: IUserHumor[]) => {
@@ -96,7 +106,7 @@ export const HomePage = () => {
   const enterSelectionMode = (scope: BulkDeleteScope) => {
     setIsOptionsMenuOpen(false);
     setBulkDeleteScope(scope);
-    setSelectedHumorIds([]);
+    clearSelection();
   };
 
   const handleStartBulkDelete = () => {
@@ -117,46 +127,13 @@ export const HomePage = () => {
     ]);
   };
 
-  const toggleHumorSelection = (id: string) => {
-    setSelectedHumorIds((currentIds) =>
-      currentIds.includes(id) ? currentIds.filter((itemId) => itemId !== id) : [...currentIds, id]
-    );
-  };
-
-  const toggleSelectAllVisible = () => {
-    if (areAllVisibleSelected) {
-      setSelectedHumorIds([]);
-      return;
-    }
-    setSelectedHumorIds(visibleHumorList.map((humor) => humor.id));
-  };
-
   const handleDeleteSelectedHumors = () => {
-    if (selectedHumorIds.length === 0) return;
-
-    const selectedCount = selectedHumorIds.length;
-
-    Alert.alert(
-      "Excluir selecionados",
-      `Tem certeza que deseja excluir ${selectedCount} registro${selectedCount > 1 ? "s" : ""}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const idsToDelete = new Set(selectedHumorIds);
-              const remainingHumors = allHumors.filter((humor) => !idsToDelete.has(humor.id));
-              await persistHumorList(remainingHumors);
-              exitSelectionMode();
-            } catch {
-              Alert.alert("Erro ao excluir os registros de humor");
-            }
-          }
-        }
-      ]
-    );
+    confirmDeleteSelected(async (ids) => {
+      const idsToDelete = new Set(ids);
+      const remainingHumors = allHumors.filter((humor) => !idsToDelete.has(humor.id));
+      await persistHumorList(remainingHumors);
+      exitSelectionMode();
+    });
   };
 
   useFocusEffect(

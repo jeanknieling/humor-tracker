@@ -15,9 +15,7 @@ export type MonthBucket = {
   count: number;
 };
 
-export type HumorPeriodStats = {
-  range: DateRange;
-  periodLabel: string;
+type HumorPeriodStats = {
   count: number;
   averageRate: number | null;
   bests: IUserHumor[];
@@ -94,15 +92,12 @@ function buildMonthlyBuckets(list: IUserHumor[], range: DateRange): MonthBucket[
 
 export function computeHumorPeriodStats(
   list: IUserHumor[],
-  selection: PeriodSelection,
-  periodLabel: string
+  selection: PeriodSelection
 ): HumorPeriodStats {
   const range = buildPeriodRange(selection);
   const inRange = filterHumorsInRange(list, range);
 
   return {
-    range,
-    periodLabel,
     count: inRange.length,
     averageRate: averageRate(inRange),
     bests: pickBests(inRange),

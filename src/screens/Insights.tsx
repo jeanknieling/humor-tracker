@@ -12,6 +12,7 @@ import { loadHumorList } from "./../shared/storage/appStorage";
 import { IUserHumor } from "./../shared/types/humor";
 import {
   createDefaultPeriodSelection,
+  formatMonthYearLabel,
   formatPeriodLabel,
   MONTH_SHORT_PT,
   PeriodMode,
@@ -27,8 +28,6 @@ const PERIOD_MODES: { mode: PeriodMode; label: string }[] = [
 type YearGroup = {
   year: number;
   buckets: MonthBucket[];
-  averageRate: number | null;
-  count: number;
 };
 
 function formatAverage(value: number | null): string {
@@ -47,20 +46,7 @@ function groupBucketsByYear(buckets: MonthBucket[]): YearGroup[] {
 
   return [...byYear.entries()]
     .sort((a, b) => b[0] - a[0])
-    .map(([year, yearBuckets]) => {
-      const withAverage = yearBuckets.filter((bucket) => bucket.averageRate != null);
-      const averageRate =
-        withAverage.length === 0
-          ? null
-          : Math.round(
-              (withAverage.reduce((sum, bucket) => sum + (bucket.averageRate ?? 0), 0) /
-                withAverage.length) *
-                10
-            ) / 10;
-      const count = yearBuckets.reduce((sum, bucket) => sum + bucket.count, 0);
-
-      return { year, buckets: yearBuckets, averageRate, count };
-    });
+    .map(([year, yearBuckets]) => ({ year, buckets: yearBuckets }));
 }
 
 function Stepper({
@@ -127,8 +113,8 @@ export const InsightsPage = () => {
 
   const periodLabel = useMemo(() => formatPeriodLabel(selection), [selection]);
   const stats = useMemo(
-    () => computeHumorPeriodStats(humors, selection, periodLabel),
-    [humors, selection, periodLabel]
+    () => computeHumorPeriodStats(humors, selection),
+    [humors, selection]
   );
   const yearGroups = useMemo(
     () => groupBucketsByYear(stats.monthlyBuckets),
@@ -136,12 +122,11 @@ export const InsightsPage = () => {
   );
 
   useEffect(() => {
-    const groups = groupBucketsByYear(stats.monthlyBuckets);
-    if (groups.length === 0) {
+    if (yearGroups.length === 0) {
       setExpandedYears(new Set());
       return;
     }
-    setExpandedYears(new Set([groups[0].year]));
+    setExpandedYears(new Set([yearGroups[0].year]));
   }, [periodLabel]);
 
   const toggleYearExpanded = (year: number) => {
@@ -186,7 +171,7 @@ export const InsightsPage = () => {
     );
   };
 
-  const starRate = stats.averageRate == null ? 0 : Math.round(stats.averageRate);
+  const starRate = stats.averageRate ?? 0;
   const hasDistinctExtremes =
     stats.bests.length > 0 &&
     stats.worsts.length > 0 &&
@@ -254,13 +239,13 @@ export const InsightsPage = () => {
             <View style={styles.selectors}>
               <Stepper
                 label="De"
-                valueLabel={`${MONTH_SHORT_PT[selection.month]}/${selection.year}`}
+                valueLabel={formatMonthYearLabel(selection.month, selection.year)}
                 onPrev={() => shiftMonth("month", -1)}
                 onNext={() => shiftMonth("month", 1)}
               />
               <Stepper
                 label="Até"
-                valueLabel={`${MONTH_SHORT_PT[selection.endMonth]}/${selection.endYear}`}
+                valueLabel={formatMonthYearLabel(selection.endMonth, selection.endYear)}
                 onPrev={() => shiftMonth("endMonth", -1)}
                 onNext={() => shiftMonth("endMonth", 1)}
               />
