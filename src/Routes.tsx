@@ -15,6 +15,7 @@ import { useTheme } from "./shared/providers/ThemeContext";
 import { PeriodSelection } from "./shared/utils/date";
 
 type InsightsHumorsSource =
+  | { type: "period"; period: PeriodSelection }
   | { type: "best"; period: PeriodSelection }
   | { type: "worst"; period: PeriodSelection }
   | { type: "month"; year: number; month: number };

@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { AppTheme } from "./../../themes/Theme";
 import { TNavigationScreenProps } from "./../Routes";
 import { StarRating } from "./../shared/components/StarRating";
+import { OptionsMenu } from "./../shared/components/OptionsMenu";
 import { useTheme } from "./../shared/providers/ThemeContext";
 import { loadHumorList } from "./../shared/storage/appStorage";
 import { IUserHumor } from "./../shared/types/humor";
@@ -81,6 +82,7 @@ export const InsightsPage = () => {
 
   const [humors, setHumors] = useState<IUserHumor[]>([]);
   const [selection, setSelection] = useState<PeriodSelection>(() => createDefaultPeriodSelection());
+  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -125,6 +127,10 @@ export const InsightsPage = () => {
   };
 
   const starRate = stats.averageRate == null ? 0 : Math.round(stats.averageRate);
+  const hasDistinctExtremes =
+    stats.bests.length > 0 &&
+    stats.worsts.length > 0 &&
+    stats.bests[0].rate !== stats.worsts[0].rate;
 
   return (
     <View style={styles.screen}>
@@ -141,8 +147,25 @@ export const InsightsPage = () => {
           />
         </Pressable>
         <Text style={styles.title}>Estatísticas</Text>
-        <View style={styles.backButtonPlaceholder} />
+        <Pressable
+          onPress={() => setIsOptionsMenuOpen(true)}
+          style={styles.backButton}
+          hitSlop={12}
+          accessibilityLabel="Opções"
+        >
+          <Ionicons
+            name="ellipsis-vertical"
+            size={24}
+            color={theme.colors.text}
+          />
+        </Pressable>
       </View>
+
+      <OptionsMenu
+        visible={isOptionsMenuOpen}
+        onClose={() => setIsOptionsMenuOpen(false)}
+        showInsightsOption={false}
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -226,13 +249,22 @@ export const InsightsPage = () => {
         ) : (
           <>
             <View style={styles.metricsRow}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>{stats.count}</Text>
-                <Text style={styles.metricLabel}>Registros</Text>
-              </View>
               <Pressable
                 style={styles.metricCard}
-                disabled={stats.bests.length === 0}
+                disabled={stats.count === 0}
+                onPress={() =>
+                  navigation.navigate("insightsHumors", {
+                    title: "Registros",
+                    source: { type: "period", period: selection }
+                  })
+                }
+              >
+                <Text style={styles.metricValue}>{stats.count}</Text>
+                <Text style={styles.metricLabel}>Registros</Text>
+              </Pressable>
+              <Pressable
+                style={styles.metricCard}
+                disabled={!hasDistinctExtremes}
                 onPress={() =>
                   navigation.navigate("insightsHumors", {
                     title: stats.bests.length > 1 ? "Melhores Humores" : "Melhor Humor",
@@ -241,15 +273,15 @@ export const InsightsPage = () => {
                 }
               >
                 <Text style={styles.metricValue}>
-                  {stats.bests[0] ? `${stats.bests[0].rate}★` : "—"}
+                  {hasDistinctExtremes ? `${stats.bests[0].rate}★` : "—"}
                 </Text>
                 <Text style={styles.metricLabel}>
-                  {stats.bests.length > 1 ? "Melhores" : "Melhor"}
+                  {hasDistinctExtremes && stats.bests.length > 1 ? "Melhores" : "Melhor"}
                 </Text>
               </Pressable>
               <Pressable
                 style={styles.metricCard}
-                disabled={stats.worsts.length === 0}
+                disabled={!hasDistinctExtremes}
                 onPress={() =>
                   navigation.navigate("insightsHumors", {
                     title: stats.worsts.length > 1 ? "Piores Humores" : "Pior Humor",
@@ -258,10 +290,10 @@ export const InsightsPage = () => {
                 }
               >
                 <Text style={styles.metricValue}>
-                  {stats.worsts[0] ? `${stats.worsts[0].rate}★` : "—"}
+                  {hasDistinctExtremes ? `${stats.worsts[0].rate}★` : "—"}
                 </Text>
                 <Text style={styles.metricLabel}>
-                  {stats.worsts.length > 1 ? "Piores" : "Pior"}
+                  {hasDistinctExtremes && stats.worsts.length > 1 ? "Piores" : "Pior"}
                 </Text>
               </Pressable>
             </View>
@@ -346,10 +378,6 @@ const createStyles = (theme: AppTheme) =>
       height: 40,
       alignItems: "center",
       justifyContent: "center"
-    },
-    backButtonPlaceholder: {
-      width: 40,
-      height: 40
     },
     title: {
       fontFamily: theme.fonts.family.bold,

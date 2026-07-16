@@ -100,7 +100,7 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 - 👋 Saudação personalizada com o nome do usuário
 - 🗓️ Calendário no header para filtrar humores por dia
 - 📋 Lista de cards do dia selecionado (ou de todos, no modo exclusão em massa)
-- ⚙️ Menu de opções (alterar nome, estatísticas, tema, ordenação, excluir vários)
+- ⚙️ Menu de opções (alterar nome, tema, estatísticas; nas listagens também ordenação e excluir vários)
 - ✅ Modo de seleção para excluir vários registros de uma vez
 - ⭐ Footer para iniciar um novo registro pela avaliação em estrelas (no dia escolhido)
 
@@ -111,6 +111,13 @@ O **Humor Tracker** é um aplicativo mobile para registrar o humor do dia de for
 - 🏆 Cartões de **melhor** / **melhores** e **pior** / **piores** (conforme a quantidade); toque abre a lista e permite editar
 - 📈 Barras de média por mês; toque abre os registros daquele mês
 - 🔄 Ao voltar da edição, as estatísticas e a lista são atualizadas
+- ⚙️ Menu de opções (alterar nome, tema) — sem ordenação/exclusão em massa nesta tela
+
+### 📋 Lista a partir das estatísticas
+
+- 🃏 Cards de melhores, piores ou de um mês específico
+- 🔀 Ordenação e exclusão em massa (mesmo menu de opções das listagens)
+- ✏️ Toque no card para editar
 
 ### 🔍 Detalhe
 
@@ -158,7 +165,7 @@ humor-tracker/
 │   │   ├── Detail.tsx          # Criar / editar / excluir humor
 │   │   └── SetUserName.tsx     # Nome do usuário
 │   └── 🧩 shared/
-│       ├── components/         # Header, Footer, HumorCard, DayCalendarModal, etc.
+│       ├── components/         # Header, Footer, HumorCard, OptionsMenu, DayCalendarModal, etc.
 │       ├── providers/          # AppProviders, Theme e SelectedDay
 │       ├── storage/            # Leitura/escrita no AsyncStorage
 │       ├── types/              # Tipos de humor e ordenação
