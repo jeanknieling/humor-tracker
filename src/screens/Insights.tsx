@@ -1,12 +1,12 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AppTheme } from "./../../themes/Theme";
 import { TNavigationScreenProps } from "./../Routes";
-import { StarRating } from "./../shared/components/StarRating";
 import { OptionsMenu } from "./../shared/components/OptionsMenu";
+import { StarRating } from "./../shared/components/StarRating";
 import { useTheme } from "./../shared/providers/ThemeContext";
 import { loadHumorList } from "./../shared/storage/appStorage";
 import { IUserHumor } from "./../shared/types/humor";
@@ -17,16 +17,50 @@ import {
   PeriodMode,
   PeriodSelection
 } from "./../shared/utils/date";
-import { computeHumorPeriodStats } from "./../shared/utils/humorStats";
+import { computeHumorPeriodStats, MonthBucket } from "./../shared/utils/humorStats";
 
 const PERIOD_MODES: { mode: PeriodMode; label: string }[] = [
   { mode: "month", label: "Mês" },
   { mode: "year", label: "Ano" }
 ];
 
+type YearGroup = {
+  year: number;
+  buckets: MonthBucket[];
+  averageRate: number | null;
+  count: number;
+};
+
 function formatAverage(value: number | null): string {
   if (value == null) return "—";
   return value.toFixed(1).replace(".", ",");
+}
+
+function groupBucketsByYear(buckets: MonthBucket[]): YearGroup[] {
+  const byYear = new Map<number, MonthBucket[]>();
+
+  for (const bucket of buckets) {
+    const list = byYear.get(bucket.year) ?? [];
+    list.push(bucket);
+    byYear.set(bucket.year, list);
+  }
+
+  return [...byYear.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([year, yearBuckets]) => {
+      const withAverage = yearBuckets.filter((bucket) => bucket.averageRate != null);
+      const averageRate =
+        withAverage.length === 0
+          ? null
+          : Math.round(
+              (withAverage.reduce((sum, bucket) => sum + (bucket.averageRate ?? 0), 0) /
+                withAverage.length) *
+                10
+            ) / 10;
+      const count = yearBuckets.reduce((sum, bucket) => sum + bucket.count, 0);
+
+      return { year, buckets: yearBuckets, averageRate, count };
+    });
 }
 
 function Stepper({
@@ -83,6 +117,7 @@ export const InsightsPage = () => {
   const [humors, setHumors] = useState<IUserHumor[]>([]);
   const [selection, setSelection] = useState<PeriodSelection>(() => createDefaultPeriodSelection());
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
+  const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
@@ -95,6 +130,31 @@ export const InsightsPage = () => {
     () => computeHumorPeriodStats(humors, selection, periodLabel),
     [humors, selection, periodLabel]
   );
+  const yearGroups = useMemo(
+    () => groupBucketsByYear(stats.monthlyBuckets),
+    [stats.monthlyBuckets]
+  );
+
+  useEffect(() => {
+    const groups = groupBucketsByYear(stats.monthlyBuckets);
+    if (groups.length === 0) {
+      setExpandedYears(new Set());
+      return;
+    }
+    setExpandedYears(new Set([groups[0].year]));
+  }, [periodLabel]);
+
+  const toggleYearExpanded = (year: number) => {
+    setExpandedYears((current) => {
+      const next = new Set(current);
+      if (next.has(year)) {
+        next.delete(year);
+      } else {
+        next.add(year);
+      }
+      return next;
+    });
+  };
 
   const setMode = (mode: PeriodMode) => {
     setSelection((current) => ({ ...current, mode }));
@@ -300,55 +360,94 @@ export const InsightsPage = () => {
 
             <View style={styles.panel}>
               <Text style={styles.sectionLabel}>Média por mês</Text>
-              <View style={styles.bars}>
-                {stats.monthlyBuckets.map((bucket) => {
-                  const ratio =
-                    bucket.averageRate == null ? 0 : Math.min(bucket.averageRate / 5, 1);
-                  const canOpen = bucket.count > 0;
+              <View style={styles.yearAccordions}>
+                {yearGroups.map((group) => {
+                  const isExpanded = expandedYears.has(group.year);
+
                   return (
-                    <Pressable
-                      key={bucket.key}
-                      style={styles.barRow}
-                      disabled={!canOpen}
-                      onPress={() =>
-                        navigation.navigate("insightsHumors", {
-                          title: bucket.label,
-                          source: {
-                            type: "month",
-                            year: bucket.year,
-                            month: bucket.month
-                          }
-                        })
-                      }
+                    <View
+                      key={group.year}
+                      style={styles.yearAccordion}
                     >
-                      <Text style={styles.barLabel}>{bucket.label}</Text>
-                      <View style={styles.barTrack}>
-                        <View
-                          style={[
-                            styles.barFill,
-                            {
-                              width: `${ratio * 100}%`,
-                              backgroundColor:
-                                bucket.averageRate == null
-                                  ? theme.colors.textPlaceholder
-                                  : theme.colors.primary
-                            }
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.barValue}>
-                        {bucket.averageRate == null ? "—" : formatAverage(bucket.averageRate)}
-                      </Text>
-                      {canOpen ? (
-                        <Ionicons
-                          name="chevron-forward"
-                          size={16}
-                          color={theme.colors.textPlaceholder}
-                        />
-                      ) : (
-                        <View style={styles.barChevronPlaceholder} />
+                      <Pressable
+                        style={styles.yearAccordionHeader}
+                        onPress={() => toggleYearExpanded(group.year)}
+                        accessibilityRole="button"
+                        accessibilityState={{ expanded: isExpanded }}
+                        accessibilityLabel={`Ano ${group.year}`}
+                      >
+                        <View style={styles.yearAccordionTitleRow}>
+                          <Ionicons
+                            name={isExpanded ? "chevron-down" : "chevron-forward"}
+                            size={18}
+                            color={theme.colors.primary}
+                          />
+                          <Text style={styles.yearAccordionTitle}>{group.year}</Text>
+                        </View>
+                      </Pressable>
+
+                      {isExpanded && (
+                        <View style={styles.bars}>
+                          {group.buckets.map((bucket) => {
+                            const ratio =
+                              bucket.averageRate == null
+                                ? 0
+                                : Math.min(bucket.averageRate / 5, 1);
+                            const canOpen = bucket.count > 0;
+
+                            return (
+                              <Pressable
+                                key={bucket.key}
+                                style={styles.barRow}
+                                disabled={!canOpen}
+                                onPress={() =>
+                                  navigation.navigate("insightsHumors", {
+                                    title: bucket.label,
+                                    source: {
+                                      type: "month",
+                                      year: bucket.year,
+                                      month: bucket.month
+                                    }
+                                  })
+                                }
+                              >
+                                <Text style={styles.barLabel}>
+                                  {MONTH_SHORT_PT[bucket.month]}
+                                </Text>
+                                <View style={styles.barTrack}>
+                                  <View
+                                    style={[
+                                      styles.barFill,
+                                      {
+                                        width: `${ratio * 100}%`,
+                                        backgroundColor:
+                                          bucket.averageRate == null
+                                            ? theme.colors.textPlaceholder
+                                            : theme.colors.primary
+                                      }
+                                    ]}
+                                  />
+                                </View>
+                                <Text style={styles.barValue}>
+                                  {bucket.averageRate == null
+                                    ? "—"
+                                    : formatAverage(bucket.averageRate)}
+                                </Text>
+                                {canOpen ? (
+                                  <Ionicons
+                                    name="chevron-forward"
+                                    size={16}
+                                    color={theme.colors.textPlaceholder}
+                                  />
+                                ) : (
+                                  <View style={styles.barChevronPlaceholder} />
+                                )}
+                              </Pressable>
+                            );
+                          })}
+                        </View>
                       )}
-                    </Pressable>
+                    </View>
                   );
                 })}
               </View>
@@ -506,24 +605,54 @@ const createStyles = (theme: AppTheme) =>
       textAlign: "center"
     },
     bars: {
-      gap: 10
+      gap: 10,
+      paddingTop: 4
+    },
+    yearAccordions: {
+      gap: 8
+    },
+    yearAccordion: {
+      backgroundColor: theme.colors.background,
+      borderRadius: 12,
+      overflow: "hidden"
+    },
+    yearAccordionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      gap: 8
+    },
+    yearAccordionTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    yearAccordionTitle: {
+      fontFamily: theme.fonts.family.bold,
+      fontSize: theme.fonts.sizes.body,
+      color: theme.colors.text
     },
     barRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingBottom: 10
     },
     barLabel: {
-      width: 64,
+      width: 32,
       fontFamily: theme.fonts.family.regular,
       fontSize: 12,
-      color: theme.colors.text
+      color: theme.colors.text,
+      textTransform: "capitalize"
     },
     barTrack: {
       flex: 1,
       height: 10,
       borderRadius: 5,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.paper,
       overflow: "hidden"
     },
     barFill: {

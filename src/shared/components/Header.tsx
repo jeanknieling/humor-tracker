@@ -118,7 +118,7 @@ const createStyles = (theme: AppTheme) =>
     },
     headerText: {
       fontSize: theme.fonts.sizes.title,
-      fontFamily: theme.fonts.family.regular,
+      fontFamily: theme.fonts.family.bold,
       color: theme.colors.text,
       textAlign: "center"
     },
