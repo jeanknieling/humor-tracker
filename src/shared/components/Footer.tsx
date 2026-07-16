@@ -8,9 +8,14 @@ import { useTheme } from "../providers/ThemeContext";
 interface IFooterProps {
   isFocused: boolean;
   children: ReactNode;
+  includeBottomInset?: boolean;
 }
 
-export const Footer = ({ children, isFocused }: IFooterProps) => {
+export const Footer = ({
+  children,
+  isFocused,
+  includeBottomInset = true
+}: IFooterProps) => {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -19,7 +24,7 @@ export const Footer = ({ children, isFocused }: IFooterProps) => {
     <View
       style={{
         ...styles.footerContainer,
-        paddingBottom: insets.bottom + 16,
+        paddingBottom: includeBottomInset ? insets.bottom + 16 : 16,
         opacity: isFocused ? 1 : 0
       }}
     >
@@ -34,6 +39,10 @@ const createStyles = (theme: AppTheme) =>
       padding: 16,
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
+      borderTopWidth: 5,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: theme.colors.background,
       backgroundColor: theme.colors.paper
     }
   });

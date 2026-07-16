@@ -56,14 +56,26 @@ export const AppRouters = () => {
           name="home"
           component={HomePage}
         />
-        <Stack.Screen
-          name="insights"
-          component={InsightsPage}
-        />
-        <Stack.Screen
-          name="insightsHumors"
-          component={InsightsHumorsPage}
-        />
+
+        <Stack.Group
+          screenLayout={({ children }) => (
+            <SafeAreaView
+              style={{ flex: 1, backgroundColor: theme.colors.background }}
+              edges={["top", "left", "right", "bottom"]}
+            >
+              {children}
+            </SafeAreaView>
+          )}
+        >
+          <Stack.Screen
+            name="insights"
+            component={InsightsPage}
+          />
+          <Stack.Screen
+            name="insightsHumors"
+            component={InsightsHumorsPage}
+          />
+        </Stack.Group>
 
         <Stack.Group
           screenOptions={{

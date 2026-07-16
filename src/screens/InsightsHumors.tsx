@@ -1,12 +1,17 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useIsFocused,
+  useNavigation,
+  useRoute
+} from "@react-navigation/native";
 import { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppTheme } from "./../../themes/Theme";
 import { TNavigationScreenProps, TRouteProps } from "./../Routes";
 import { Button } from "./../shared/components/Button";
+import { Footer } from "./../shared/components/Footer";
 import { HumorCard } from "./../shared/components/HumorCard";
 import { OptionsMenu } from "./../shared/components/OptionsMenu";
 import { useHumorSelection } from "./../shared/hooks/useHumorSelection";
@@ -42,7 +47,7 @@ function resolveHumors(
 export const InsightsHumorsPage = () => {
   const navigation = useNavigation<TNavigationScreenProps>();
   const { params } = useRoute<TRouteProps<"insightsHumors">>();
-  const insets = useSafeAreaInsets();
+  const isScreenFocused = useIsFocused();
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -198,21 +203,32 @@ export const InsightsHumorsPage = () => {
       />
 
       {isSelectionMode && (
-        <View style={[styles.selectionFooter, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-          <Button
-            title="Cancelar"
-            variant="outlined"
-            flex
-            onPress={exitSelectionMode}
-          />
-          <Button
-            title={selectedHumorIds.length > 0 ? `Excluir (${selectedHumorIds.length})` : "Excluir"}
-            flex
-            variant="outlined"
-            color={theme.colors.error}
-            onPress={selectedHumorIds.length > 0 ? handleDeleteSelectedHumors : undefined}
-          />
-        </View>
+        <Footer
+          isFocused={isScreenFocused}
+          includeBottomInset={false}
+        >
+          <View style={styles.selectionFooter}>
+            <Button
+              title="Cancelar"
+              variant="outlined"
+              flex
+              onPress={exitSelectionMode}
+            />
+            <Button
+              title={
+                selectedHumorIds.length > 0
+                  ? `Excluir (${selectedHumorIds.length})`
+                  : "Excluir"
+              }
+              flex
+              variant="outlined"
+              color={theme.colors.error}
+              onPress={
+                selectedHumorIds.length > 0 ? handleDeleteSelectedHumors : undefined
+              }
+            />
+          </View>
+        </Footer>
       )}
     </View>
   );
@@ -275,11 +291,6 @@ const createStyles = (theme: AppTheme) =>
     },
     selectionFooter: {
       flexDirection: "row",
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      backgroundColor: theme.colors.paper,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16
+      gap: 8
     }
   });
